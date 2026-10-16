@@ -2,15 +2,15 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { topLevelField, type FieldErrors } from "@/features/ngos/onboarding";
 import {
   EMPTY_INDIVIDUAL_DRAFT,
-  INDIVIDUAL_SECTIONS,
-  draftToCreatePayload,
+  SIGNUP_SECTIONS,
+  draftToSignupPayload,
   errorsForSection,
   firstSectionWithErrors,
-  validateCreateDraft,
+  validateSignupDraft,
   type IndividualDraft,
   type IndividualSectionId,
 } from "@/features/individuals/onboarding";
@@ -20,8 +20,8 @@ import { countryName } from "@/features/ngos/countries";
 import { OnboardingStepper } from "@/components/ngos/onboarding/OnboardingStepper";
 import { IndividualProfileFields } from "./IndividualProfileFields";
 
-const REVIEW_INDEX = INDIVIDUAL_SECTIONS.length;
-const STEP_LABELS = [...INDIVIDUAL_SECTIONS.map((section) => section.label), "Review"];
+const REVIEW_INDEX = SIGNUP_SECTIONS.length;
+const STEP_LABELS = [...SIGNUP_SECTIONS.map((section) => section.label), "Review"];
 
 const primaryButton =
   "rounded-full bg-emerald-600 px-6 py-2.5 text-sm font-medium text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-emerald-500 dark:text-emerald-950 dark:hover:bg-emerald-400";
@@ -34,15 +34,9 @@ function causeLabel(value: string) {
   return (NGO_CAUSE_LABELS as Record<string, string>)[value] ?? value;
 }
 
-function ReviewSummary({
-  draft,
-  onEdit,
-}: {
-  draft: IndividualDraft;
-  onEdit: (index: number) => void;
-}) {
+function ReviewSummary({ draft, onEdit }: { draft: IndividualDraft; onEdit: (index: number) => void }) {
   const none = <span className="italic opacity-50">Not provided</span>;
-  const rows: Record<IndividualSectionId, Array<[string, React.ReactNode]>> = {
+  const rows: Record<IndividualSectionId, Array<[string, ReactNode]>> = {
     about: [
       ["Full name", draft.fullName.trim() || none],
       ["Email", draft.email.trim() || none],
@@ -63,7 +57,7 @@ function ReviewSummary({
 
   return (
     <div className="grid gap-4">
-      {INDIVIDUAL_SECTIONS.map((section, index) => (
+      {SIGNUP_SECTIONS.map((section, index) => (
         <section
           key={section.id}
           aria-labelledby={`review-${section.id}`}
@@ -95,14 +89,12 @@ function ReviewSummary({
   );
 }
 
-export function IndividualOnboardingWizard({ initialEmail }: { initialEmail?: string }) {
+/** Individual sign-up: creates the account and the profile together. */
+export function IndividualSignUpWizard() {
   const router = useRouter();
   const uid = useId();
   const [current, setCurrent] = useState(0);
-  const [draft, setDraft] = useState<IndividualDraft>({
-    ...EMPTY_INDIVIDUAL_DRAFT,
-    email: initialEmail ?? "",
-  });
+  const [draft, setDraft] = useState<IndividualDraft>(EMPTY_INDIVIDUAL_DRAFT);
   const [errors, setErrors] = useState<FieldErrors>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -134,7 +126,7 @@ export function IndividualOnboardingWizard({ initialEmail }: { initialEmail?: st
   }
 
   function next() {
-    const sectionErrors = errorsForSection(validateCreateDraft(draft), current);
+    const sectionErrors = errorsForSection(validateSignupDraft(draft), SIGNUP_SECTIONS, current);
     if (Object.keys(sectionErrors).length > 0) {
       setErrors(sectionErrors);
       setFormError("Please fix the highlighted fields before continuing.");
@@ -144,14 +136,14 @@ export function IndividualOnboardingWizard({ initialEmail }: { initialEmail?: st
   }
 
   function showErrors(fieldErrors: FieldErrors, message: string) {
-    const index = firstSectionWithErrors(fieldErrors);
+    const index = firstSectionWithErrors(fieldErrors, SIGNUP_SECTIONS);
     goTo(index === -1 ? REVIEW_INDEX : index);
     setErrors(fieldErrors);
     setFormError(message);
   }
 
   async function submit() {
-    const allErrors = validateCreateDraft(draft);
+    const allErrors = validateSignupDraft(draft);
     if (Object.keys(allErrors).length > 0) {
       showErrors(allErrors, "Some information needs your attention before you can continue.");
       return;
@@ -159,20 +151,17 @@ export function IndividualOnboardingWizard({ initialEmail }: { initialEmail?: st
     setSubmitting(true);
     setFormError(null);
     try {
-      const response = await fetch("/api/me/individual-profile", {
+      const response = await fetch("/api/accounts/individual", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(draftToCreatePayload(draft)),
+        body: JSON.stringify(draftToSignupPayload(draft)),
       });
       const body = (await response.json()) as
-        | { data: IndividualProfileView }
+        | { data: { profile: IndividualProfileView } }
         | { error: ApiError };
       if (!response.ok || "error" in body) {
         const error = "error" in body ? body.error : undefined;
-        const message =
-          response.status === 401
-            ? "Your session has expired. Please sign in again."
-            : (error?.message ?? "Something went wrong. Please try again.");
+        const message = error?.message ?? "Something went wrong. Please try again.";
         if (error?.fieldErrors && Object.keys(error.fieldErrors).length > 0) {
           showErrors(error.fieldErrors, message);
         } else {
@@ -181,7 +170,7 @@ export function IndividualOnboardingWizard({ initialEmail }: { initialEmail?: st
         return;
       }
       hasNavigated.current = true;
-      setCreated(body.data);
+      setCreated(body.data.profile);
     } catch {
       setFormError("Could not reach the server. Check your connection and try again.");
     } finally {
@@ -207,15 +196,22 @@ export function IndividualOnboardingWizard({ initialEmail }: { initialEmail?: st
           Welcome, {created.fullName.split(" ")[0]}!
         </h1>
         <p className="mx-auto mt-3 max-w-xl opacity-80">
-          Your profile is ready. Explore the map to find organizations fighting hunger
-          where you&apos;d like to help.
+          Your account is ready and you&apos;re signed in. Explore the map to find
+          organizations fighting hunger where you&apos;d like to help.
         </p>
         <div className="mt-8 flex flex-wrap justify-center gap-3">
           <Link href="/map" className={primaryButton}>
             Explore the hunger map
           </Link>
-          <button type="button" onClick={() => router.refresh()} className={secondaryButton}>
-            See my profile
+          <button
+            type="button"
+            onClick={() => {
+              router.push("/me");
+              router.refresh();
+            }}
+            className={secondaryButton}
+          >
+            Go to my profile
           </button>
         </div>
       </section>
@@ -223,7 +219,7 @@ export function IndividualOnboardingWizard({ initialEmail }: { initialEmail?: st
   }
 
   const isReview = current === REVIEW_INDEX;
-  const section = INDIVIDUAL_SECTIONS[current];
+  const section = SIGNUP_SECTIONS[current];
 
   return (
     <div>
@@ -231,7 +227,12 @@ export function IndividualOnboardingWizard({ initialEmail }: { initialEmail?: st
         Individual account
       </p>
       <h1 className="mt-1 text-2xl font-bold tracking-tight">Create your account</h1>
-      <p className="mt-1 text-sm opacity-70">Takes about 2 minutes.</p>
+      <p className="mt-1 text-sm opacity-70">
+        Takes about 2 minutes. Already have an account?{" "}
+        <Link href="/sign-in?as=individual" className="underline underline-offset-2">
+          Sign in
+        </Link>
+      </p>
 
       <div className="mt-6">
         <OnboardingStepper labels={STEP_LABELS} current={current} onSelect={jumpTo} />
@@ -294,7 +295,7 @@ export function IndividualOnboardingWizard({ initialEmail }: { initialEmail?: st
             )}
           </div>
           <button type="submit" disabled={submitting} className={primaryButton}>
-            {isReview ? (submitting ? "Creating profile…" : "Create my profile") : "Continue"}
+            {isReview ? (submitting ? "Creating your account…" : "Create my account") : "Continue"}
           </button>
         </div>
       </form>

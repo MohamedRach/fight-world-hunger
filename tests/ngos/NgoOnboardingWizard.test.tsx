@@ -174,6 +174,50 @@ describe("NgoOnboardingWizard", () => {
     expect(screen.getByRole("button", { name: "Remove Kenya" })).toBeInTheDocument();
   });
 
+  it("creates the NGO account in the same onboarding when no one is signed in", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue(
+        jsonResponse(
+          { data: { account: {}, ngo: { id: "ngo-1", slug: "food-for-all", name: "Food For All" } } },
+          201,
+        ),
+      );
+    vi.stubGlobal("fetch", fetchMock);
+
+    render(<NgoOnboardingWizard requireAccount />);
+    fireEvent.click(screen.getByRole("button", { name: "Start onboarding" }));
+    expect(screen.getByRole("heading", { name: "Your NGO account" })).toBeInTheDocument();
+
+    fireEvent.click(continueButton());
+    expect(screen.getByText("Enter your full name")).toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText(/^Your full name/), { target: { value: "Moussa Diop" } });
+    fireEvent.change(screen.getByLabelText(/^Account email/), {
+      target: { value: "contact@food-for-all.org" },
+    });
+    fireEvent.click(continueButton());
+    fillIdentity();
+    fireEvent.click(continueButton());
+    fillGeography();
+    fireEvent.click(continueButton());
+    fillCauses();
+    fireEvent.click(continueButton());
+    fireEvent.click(continueButton());
+    fireEvent.click(continueButton());
+    fireEvent.click(screen.getByRole("button", { name: "Create my NGO account" }));
+
+    expect(
+      await screen.findByRole("heading", { name: "Welcome aboard, Food For All!" }),
+    ).toBeInTheDocument();
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(url).toBe("/api/accounts/ngo");
+    expect(JSON.parse(init.body as string)).toMatchObject({
+      account: { representativeName: "Moussa Diop", email: "contact@food-for-all.org" },
+      ngo: { name: "Food For All", hqCountryCode: "FRA" },
+    });
+  });
+
   it("prevents choosing the primary cause again as an additional cause", () => {
     startWizard();
     fillIdentity();

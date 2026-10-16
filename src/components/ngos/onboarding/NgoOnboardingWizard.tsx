@@ -21,13 +21,17 @@ import {
 } from "@/features/ngos/onboarding";
 import { NGO_CAUSES, NGO_CAUSE_LABELS, type NgoPublicProfile } from "@/features/ngos/types";
 import { COUNTRIES, countryName } from "@/features/ngos/countries";
+import { fieldErrorsFromZod } from "@/features/ngos/validation";
+import { ngoAccountSchema } from "@/features/accounts/validation";
 import { CheckboxGroup, CountryMultiSelect, SelectInput, TextArea, TextInput } from "./fields";
 import { OnboardingStepper } from "./OnboardingStepper";
 import { OnboardingReview } from "./OnboardingReview";
 
 const DRAFT_STORAGE_KEY = "ngo-onboarding-draft:v1";
-const REVIEW_INDEX = ONBOARDING_STEPS.length;
-const STEP_LABELS = [...ONBOARDING_STEPS.map((step) => step.label), "Review"];
+const PROFILE_STEP_LABELS = ONBOARDING_STEPS.map((step) => step.label);
+const ACCOUNT_FIELDS = new Set(["representativeName", "email"]);
+
+type NgoAccountDraft = { representativeName: string; email: string };
 const COUNTRY_OPTIONS = Object.entries(COUNTRIES).sort(([, a], [, b]) => a.localeCompare(b));
 const CAUSE_OPTIONS = NGO_CAUSES.map((cause) => [cause, NGO_CAUSE_LABELS[cause]] as const);
 
@@ -66,11 +70,29 @@ const secondaryButton =
 
 export function NgoOnboardingWizard({
   initialCountryCode,
+  requireAccount = false,
 }: {
   /** Pre-selected country of operation, e.g. when arriving from the map. */
   initialCountryCode?: string;
+  /** No one is signed in: the onboarding also creates the NGO account. */
+  requireAccount?: boolean;
 } = {}) {
   const uid = useId();
+  const [account, setAccount] = useState<NgoAccountDraft>({ representativeName: "", email: "" });
+  // With an account step, profile steps start at index 1.
+  const offset = requireAccount ? 1 : 0;
+  const reviewIndex = ONBOARDING_STEPS.length + offset;
+  const stepLabels = [...(requireAccount ? ["Account"] : []), ...PROFILE_STEP_LABELS, "Review"];
+
+  function accountErrors(): FieldErrors {
+    const result = ngoAccountSchema.safeParse(account);
+    return result.success ? {} : fieldErrorsFromZod(result.error);
+  }
+
+  function updateAccount(key: keyof NgoAccountDraft, value: string) {
+    setAccount((previous) => ({ ...previous, [key]: value }));
+    clearFieldErrors(key);
+  }
   const [phase, setPhase] = useState<Phase>("welcome");
   const [current, setCurrent] = useState(0);
   const [draft, setDraft] = useState<OnboardingDraft>(EMPTY_DRAFT);
@@ -182,7 +204,10 @@ export function NgoOnboardingWizard({
   }
 
   function next() {
-    const stepErrors = errorsForStep(validateDraft(draft), current);
+    const stepErrors =
+      requireAccount && current === 0
+        ? accountErrors()
+        : errorsForStep(validateDraft(draft), current - offset);
     if (Object.keys(stepErrors).length > 0) {
       setErrors(stepErrors);
       setFormError("Please fix the highlighted fields before continuing.");
@@ -192,14 +217,19 @@ export function NgoOnboardingWizard({
   }
 
   function showErrors(fieldErrors: FieldErrors, message: string) {
+    const hasAccountErrors =
+      requireAccount && Object.keys(fieldErrors).some((key) => ACCOUNT_FIELDS.has(topLevelField(key)));
     const stepIndex = firstStepWithErrors(fieldErrors);
-    goTo("steps", stepIndex === -1 ? REVIEW_INDEX : stepIndex);
+    goTo(
+      "steps",
+      hasAccountErrors ? 0 : stepIndex === -1 ? reviewIndex : stepIndex + offset,
+    );
     setErrors(fieldErrors);
     setFormError(message);
   }
 
   async function submit() {
-    const allErrors = validateDraft(draft);
+    const allErrors = { ...(requireAccount ? accountErrors() : {}), ...validateDraft(draft) };
     if (Object.keys(allErrors).length > 0) {
       showErrors(allErrors, "Some information needs your attention before you can submit.");
       return;
@@ -208,12 +238,17 @@ export function NgoOnboardingWizard({
     setSubmitting(true);
     setFormError(null);
     try {
-      const response = await fetch("/api/ngos", {
+      // New NGO account: create the account and the NGO together.
+      const response = await fetch(requireAccount ? "/api/accounts/ngo" : "/api/ngos", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(draftToPayload(draft)),
+        body: JSON.stringify(
+          requireAccount ? { account, ngo: draftToPayload(draft) } : draftToPayload(draft),
+        ),
       });
-      const body = (await response.json()) as { data: NgoPublicProfile } | { error: ApiError };
+      const body = (await response.json()) as
+        | { data: NgoPublicProfile | { ngo: NgoPublicProfile } }
+        | { error: ApiError };
 
       if (!response.ok || "error" in body) {
         const error = "error" in body ? body.error : undefined;
@@ -231,7 +266,7 @@ export function NgoOnboardingWizard({
       }
 
       clearDraft();
-      setCreated(body.data);
+      setCreated("ngo" in body.data ? body.data.ngo : body.data);
       goTo("done", 0);
     } catch {
       saveDraft(draft);
@@ -600,14 +635,59 @@ export function NgoOnboardingWizard({
     );
   }
 
-  const isReview = current === REVIEW_INDEX;
-  const step = ONBOARDING_STEPS[current];
+  const isReview = current === reviewIndex;
+  const isAccountStep = requireAccount && current === 0;
+  const step = ONBOARDING_STEPS[current - offset];
+  const stepTitle = isReview
+    ? "Review and submit"
+    : isAccountStep
+      ? "Your NGO account"
+      : step.title;
+  const stepDescription = isReview
+    ? "Check your information before creating your profile. You can edit any section."
+    : isAccountStep
+      ? "Who manages this NGO on the platform. You'll sign in with this email."
+      : step.description;
+
+  const accountFields = (
+    <div className="grid gap-5 sm:grid-cols-2">
+      <TextInput
+        id={fieldId("representativeName")}
+        label="Your full name"
+        required
+        value={account.representativeName}
+        onChange={(value) => updateAccount("representativeName", value)}
+        maxLength={120}
+        autoComplete="name"
+        error={fieldError("representativeName")}
+      />
+      <TextInput
+        id={fieldId("email")}
+        label="Account email"
+        type="email"
+        required
+        value={account.email}
+        onChange={(value) => updateAccount("email", value)}
+        autoComplete="email"
+        hint="Used to sign in to your NGO account. Not shown publicly."
+        error={fieldError("email")}
+      />
+    </div>
+  );
 
   return (
     <div>
       <h1 className="text-2xl font-bold tracking-tight">Register your NGO</h1>
+      {requireAccount && (
+        <p className="mt-1 text-sm opacity-70">
+          This creates your NGO account. Already registered?{" "}
+          <Link href="/sign-in?as=ngo" className="underline underline-offset-2">
+            Sign in
+          </Link>
+        </p>
+      )}
       <div className="mt-6">
-        <OnboardingStepper labels={STEP_LABELS} current={current} onSelect={jumpTo} />
+        <OnboardingStepper labels={stepLabels} current={current} onSelect={jumpTo} />
       </div>
 
       <form
@@ -627,13 +707,9 @@ export function NgoOnboardingWizard({
             tabIndex={-1}
             className="text-xl font-semibold outline-none"
           >
-            {isReview ? "Review and submit" : step.title}
+            {stepTitle}
           </h2>
-          <p className="mt-1 text-sm opacity-70">
-            {isReview
-              ? "Check your information before creating your profile. You can edit any section."
-              : step.description}
-          </p>
+          <p className="mt-1 text-sm opacity-70">{stepDescription}</p>
 
           {notice && (
             <p
@@ -654,7 +730,28 @@ export function NgoOnboardingWizard({
 
           <div className="mt-6">
             {isReview ? (
-              <OnboardingReview draft={draft} onEdit={jumpTo} />
+              <div className="grid gap-4">
+                {requireAccount && (
+                  <section className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-black/10 p-5 text-sm dark:border-white/15">
+                    <div>
+                      <h3 className="font-semibold">NGO account</h3>
+                      <p className="mt-1 opacity-80">
+                        {account.representativeName} · {account.email}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => jumpTo(0)}
+                      className="rounded-full border border-black/15 px-3 py-1 text-xs font-medium hover:bg-black/5 dark:border-white/20 dark:hover:bg-white/10"
+                    >
+                      Edit<span className="sr-only"> NGO account</span>
+                    </button>
+                  </section>
+                )}
+                <OnboardingReview draft={draft} onEdit={(index) => jumpTo(index + offset)} />
+              </div>
+            ) : isAccountStep ? (
+              accountFields
             ) : (
               renderStepFields(step.id)
             )}
@@ -666,12 +763,22 @@ export function NgoOnboardingWizard({
             <button type="button" onClick={back} className={secondaryButton}>
               Back
             </button>
-            <Link href="/dashboard" onClick={() => saveDraft(draft)} className={secondaryButton}>
+            <Link
+              href={requireAccount ? "/map" : "/dashboard"}
+              onClick={() => saveDraft(draft)}
+              className={secondaryButton}
+            >
               Save and exit
             </Link>
           </div>
           <button type="submit" disabled={submitting} className={primaryButton}>
-            {isReview ? (submitting ? "Creating profile…" : "Create NGO profile") : "Continue"}
+            {isReview
+              ? submitting
+                ? "Creating…"
+                : requireAccount
+                  ? "Create my NGO account"
+                  : "Create NGO profile"
+              : "Continue"}
           </button>
         </div>
 

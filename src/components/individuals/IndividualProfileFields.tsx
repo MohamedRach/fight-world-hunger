@@ -54,17 +54,27 @@ export function IndividualProfileFields({
             autoComplete="name"
             error={error("fullName")}
           />
-          <TextInput
-            id={id("email")}
-            label="Email"
-            type="email"
-            required
-            value={draft.email}
-            onChange={(value) => onChange("email", value)}
-            autoComplete="email"
-            hint="Never shown to NGOs unless you allow contact."
-            error={error("email")}
-          />
+          {mode === "create" ? (
+            <TextInput
+              id={id("email")}
+              label="Email"
+              type="email"
+              required
+              value={draft.email}
+              onChange={(value) => onChange("email", value)}
+              autoComplete="email"
+              hint="You'll use it to sign in. Never shown to NGOs unless you allow contact."
+              error={error("email")}
+            />
+          ) : (
+            <div className="flex flex-col gap-1">
+              <span className="text-sm font-medium">Email</span>
+              <span className="rounded-lg bg-black/5 px-3 py-2 text-sm dark:bg-white/10">
+                {draft.email}
+              </span>
+              <span className="text-xs opacity-60">Your sign-in email can&apos;t be changed here.</span>
+            </div>
+          )}
           <SelectInput
             id={id("countryCode")}
             label="Country of residence"

@@ -23,10 +23,7 @@ export default async function NgoDashboardPage() {
         </Link>
         {user && (
           <div className="flex items-center gap-3">
-            <span className="break-all opacity-70">{user.id}</span>
-            <Link href="/me" className="underline underline-offset-2 opacity-70 hover:opacity-100">
-              My individual profile
-            </Link>
+            <span className="break-all opacity-70">{user.email}</span>
             <SignOutButton />
           </div>
         )}
@@ -38,7 +35,7 @@ export default async function NgoDashboardPage() {
             Manage your organization&apos;s public profile.
           </p>
         </div>
-        {user && (
+        {user?.type === "NGO" && (
           <Link
             href="/onboarding"
             className="rounded-full bg-emerald-600 px-5 py-2 text-sm font-medium text-white hover:bg-emerald-700 dark:bg-emerald-500 dark:text-emerald-950"
@@ -56,6 +53,19 @@ export default async function NgoDashboardPage() {
             className="mt-4 inline-block rounded-full bg-emerald-600 px-5 py-2 text-sm font-medium text-white hover:bg-emerald-700 dark:bg-emerald-500 dark:text-emerald-950"
           >
             Sign in as an NGO
+          </Link>
+        </div>
+      ) : user.type === "INDIVIDUAL" ? (
+        <div className="mt-8 rounded-xl border border-black/10 p-6 dark:border-white/15">
+          <h2 className="font-semibold">This is an individual account</h2>
+          <p className="mt-1 text-sm opacity-70">
+            The NGO dashboard is for NGO accounts. Individual and NGO accounts are separate.
+          </p>
+          <Link
+            href="/me"
+            className="mt-4 inline-block rounded-full bg-emerald-600 px-5 py-2 text-sm font-medium text-white hover:bg-emerald-700 dark:bg-emerald-500 dark:text-emerald-950"
+          >
+            Go to my profile
           </Link>
         </div>
       ) : ngos.length === 0 ? (

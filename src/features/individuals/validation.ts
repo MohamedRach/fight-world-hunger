@@ -40,7 +40,8 @@ export const individualCreateSchema = individualBaseSchema.extend({
   }),
 });
 
-export const individualUpdateSchema = individualBaseSchema.partial();
+// The email is the account's sign-in email; it is not editable from the profile.
+export const individualUpdateSchema = individualBaseSchema.omit({ email: true }).partial();
 
 export type IndividualCreateInput = z.infer<typeof individualCreateSchema>;
 export type IndividualUpdateInput = z.infer<typeof individualUpdateSchema>;

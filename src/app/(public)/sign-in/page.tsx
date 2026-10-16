@@ -51,19 +51,13 @@ export default async function SignInPage(props: PageProps<"/sign-in">) {
       <p className="mt-2 opacity-80">{copy.intro}</p>
 
       <div className="mt-8">
-        {process.env.NODE_ENV === "production" ? (
-          <p className="rounded-xl border border-black/10 p-6 text-sm dark:border-white/15">
-            Sign-in is not available yet. Please check back soon.
-          </p>
-        ) : (
-          // `key` resets the panel's state when switching between the two pages.
-          <SignInPanel
-            key={role}
-            role={role}
-            currentUserId={user?.id ?? null}
-            nextPath={nextPath}
-          />
-        )}
+        {/* `key` resets the panel's state when switching between the two pages. */}
+        <SignInPanel
+          key={role}
+          role={role}
+          currentAccount={user ? { email: user.email, type: user.type } : null}
+          nextPath={nextPath}
+        />
       </div>
 
       <p className="mt-8 border-t border-black/10 pt-6 text-sm dark:border-white/15">

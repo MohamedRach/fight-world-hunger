@@ -3,7 +3,7 @@ import { topLevelField, type FieldErrors } from "@/features/ngos/onboarding";
 import { individualCreateSchema, individualUpdateSchema } from "./validation";
 import type { IndividualProfileView } from "./types";
 
-/** Raw form state for the individual profile (wizard and edit form). */
+/** Raw form state for individual sign-up and profile editing. */
 export type IndividualDraft = {
   fullName: string;
   email: string;
@@ -40,7 +40,24 @@ export type IndividualSection = {
   fields: readonly (keyof IndividualDraft)[];
 };
 
-export const INDIVIDUAL_SECTIONS: readonly IndividualSection[] = [
+const INTERESTS: IndividualSection = {
+  id: "interests",
+  label: "Interests",
+  title: "What you care about",
+  description: "We'll use this to suggest organizations that match your interests.",
+  fields: ["preferredCauses", "preferredCountryCodes"],
+};
+
+const PRIVACY: IndividualSection = {
+  id: "privacy",
+  label: "Privacy",
+  title: "Privacy and communication",
+  description: "You stay in control of how you appear and who can contact you.",
+  fields: ["donateAnonymously", "contactConsent", "acceptPrivacyPolicy"],
+};
+
+/** Individual sign-up steps (the email identifies the new account). */
+export const SIGNUP_SECTIONS: readonly IndividualSection[] = [
   {
     id: "about",
     label: "About you",
@@ -48,20 +65,21 @@ export const INDIVIDUAL_SECTIONS: readonly IndividualSection[] = [
     description: "The basics. Your profile is private — NGOs can't browse it.",
     fields: ["fullName", "email", "countryCode", "avatarUrl", "bio"],
   },
+  INTERESTS,
+  PRIVACY,
+];
+
+/** Sections of the edit form (the account email isn't editable). */
+export const INDIVIDUAL_SECTIONS: readonly IndividualSection[] = [
   {
-    id: "interests",
-    label: "Interests",
-    title: "What you care about",
-    description: "We'll use this to suggest organizations that match your interests.",
-    fields: ["preferredCauses", "preferredCountryCodes"],
+    id: "about",
+    label: "About you",
+    title: "About you",
+    description: "The basics. Your profile is private — NGOs can't browse it.",
+    fields: ["fullName", "countryCode", "avatarUrl", "bio"],
   },
-  {
-    id: "privacy",
-    label: "Privacy",
-    title: "Privacy and communication",
-    description: "You stay in control of how you appear and who can contact you.",
-    fields: ["donateAnonymously", "contactConsent", "acceptPrivacyPolicy"],
-  },
+  INTERESTS,
+  PRIVACY,
 ];
 
 function optional(value: string): string | undefined {
@@ -69,10 +87,9 @@ function optional(value: string): string | undefined {
   return trimmed.length > 0 ? trimmed : undefined;
 }
 
-function commonPayload(draft: IndividualDraft) {
+function profilePayload(draft: IndividualDraft) {
   return {
     fullName: draft.fullName.trim(),
-    email: draft.email.trim(),
     countryCode: optional(draft.countryCode),
     avatarUrl: optional(draft.avatarUrl),
     bio: optional(draft.bio),
@@ -83,14 +100,18 @@ function commonPayload(draft: IndividualDraft) {
   };
 }
 
-/** Body for POST /api/me/individual-profile. */
-export function draftToCreatePayload(draft: IndividualDraft): Record<string, unknown> {
-  return { ...commonPayload(draft), acceptPrivacyPolicy: draft.acceptPrivacyPolicy };
+/** Body for POST /api/accounts/individual. */
+export function draftToSignupPayload(draft: IndividualDraft): Record<string, unknown> {
+  return {
+    ...profilePayload(draft),
+    email: draft.email.trim(),
+    acceptPrivacyPolicy: draft.acceptPrivacyPolicy,
+  };
 }
 
 /** Body for PATCH /api/me/individual-profile. Cleared optional fields become null. */
 export function draftToUpdatePayload(draft: IndividualDraft): Record<string, unknown> {
-  const payload = commonPayload(draft);
+  const payload = profilePayload(draft);
   return {
     ...payload,
     countryCode: payload.countryCode ?? null,
@@ -99,8 +120,8 @@ export function draftToUpdatePayload(draft: IndividualDraft): Record<string, unk
   };
 }
 
-export function validateCreateDraft(draft: IndividualDraft): FieldErrors {
-  const result = individualCreateSchema.safeParse(draftToCreatePayload(draft));
+export function validateSignupDraft(draft: IndividualDraft): FieldErrors {
+  const result = individualCreateSchema.safeParse(draftToSignupPayload(draft));
   return result.success ? {} : fieldErrorsFromZod(result.error);
 }
 
@@ -109,16 +130,23 @@ export function validateUpdateDraft(draft: IndividualDraft): FieldErrors {
   return result.success ? {} : fieldErrorsFromZod(result.error);
 }
 
-export function errorsForSection(errors: FieldErrors, sectionIndex: number): FieldErrors {
-  const fields = new Set<string>(INDIVIDUAL_SECTIONS[sectionIndex]?.fields ?? []);
+export function errorsForSection(
+  errors: FieldErrors,
+  sections: readonly IndividualSection[],
+  index: number,
+): FieldErrors {
+  const fields = new Set<string>(sections[index]?.fields ?? []);
   return Object.fromEntries(
     Object.entries(errors).filter(([key]) => fields.has(topLevelField(key))),
   );
 }
 
-export function firstSectionWithErrors(errors: FieldErrors): number {
-  return INDIVIDUAL_SECTIONS.findIndex(
-    (_, index) => Object.keys(errorsForSection(errors, index)).length > 0,
+export function firstSectionWithErrors(
+  errors: FieldErrors,
+  sections: readonly IndividualSection[],
+): number {
+  return sections.findIndex(
+    (_, index) => Object.keys(errorsForSection(errors, sections, index)).length > 0,
   );
 }
 

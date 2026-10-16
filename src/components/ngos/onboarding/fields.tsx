@@ -82,7 +82,7 @@ export function TextInput({
 }: BaseFieldProps & {
   value: string;
   onChange: (value: string) => void;
-  type?: "text" | "url" | "email" | "tel";
+  type?: "text" | "url" | "email" | "tel" | "password";
   maxLength?: number;
   inputMode?: HTMLAttributes<HTMLInputElement>["inputMode"];
   placeholder?: string;
