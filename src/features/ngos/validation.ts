@@ -10,9 +10,9 @@ const countryCodeSchema = z
   .string()
   .trim()
   .toUpperCase()
-  .refine(isCountryCode, "Must be a valid ISO 3166-1 alpha-2 country code");
+  .refine(isCountryCode, "Select a valid country");
 
-const causeSchema = z.enum(NGO_CAUSES);
+const causeSchema = z.enum(NGO_CAUSES, { error: "Select a cause" });
 
 export const socialLinksSchema = z.strictObject({
   twitter: urlSchema.optional(),
@@ -37,8 +37,8 @@ const ngoBaseSchema = z.strictObject({
   activitiesDescription: z.string().trim().max(5000).nullish(),
   targetBeneficiaries: z.string().trim().max(1000).nullish(),
   yearFounded: z
-    .number()
-    .int()
+    .number({ error: "Enter a valid year, e.g. 2010" })
+    .int("Year founded must be a whole number")
     .min(1800, "Year founded must be 1800 or later")
     .max(CURRENT_YEAR, "Year founded cannot be in the future")
     .nullish(),

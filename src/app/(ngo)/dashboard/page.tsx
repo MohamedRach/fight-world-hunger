@@ -26,7 +26,7 @@ export default async function NgoDashboardPage() {
         </div>
         {user && (
           <Link
-            href="/dashboard/ngos/new"
+            href="/onboarding"
             className="rounded-full bg-emerald-600 px-5 py-2 text-sm font-medium text-white hover:bg-emerald-700 dark:bg-emerald-500 dark:text-emerald-950"
           >
             Create NGO profile
@@ -52,7 +52,7 @@ export default async function NgoDashboardPage() {
             donors about your mission, activities, and impact.
           </p>
           <Link
-            href="/dashboard/ngos/new"
+            href="/onboarding"
             className="mt-4 inline-block rounded-full bg-emerald-600 px-5 py-2 text-sm font-medium text-white hover:bg-emerald-700 dark:bg-emerald-500 dark:text-emerald-950"
           >
             Create NGO profile
