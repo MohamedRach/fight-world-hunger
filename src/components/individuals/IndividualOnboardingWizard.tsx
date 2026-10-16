@@ -228,9 +228,9 @@ export function IndividualOnboardingWizard({ initialEmail }: { initialEmail?: st
   return (
     <div>
       <p className="text-sm font-semibold uppercase tracking-wide text-emerald-700 dark:text-emerald-400">
-        Individual profile
+        Individual account
       </p>
-      <h1 className="mt-1 text-2xl font-bold tracking-tight">Create your profile</h1>
+      <h1 className="mt-1 text-2xl font-bold tracking-tight">Create your account</h1>
       <p className="mt-1 text-sm opacity-70">Takes about 2 minutes.</p>
 
       <div className="mt-6">

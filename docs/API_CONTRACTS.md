@@ -134,6 +134,15 @@ type IndividualProfileView = {
 - **200** `{ data: IndividualProfileView }`
 - **Errors:** `400 VALIDATION_ERROR`, `401 UNAUTHENTICATED`, `404 NOT_FOUND`
 
+## GET `/api/me/ngos` (Developer 3)
+
+NGOs the signed-in user manages (owner or editor). Used by NGO sign-in to
+decide between the dashboard and NGO registration.
+
+- **Auth:** required. **200** `{ data: Array<{ id: string; name: string; slug: string }> }`
+  (empty array when the account has no NGO).
+- **Errors:** `401 UNAUTHENTICATED`
+
 ## Sign-in (temporary)
 
 `/sign-in?as=individual|ngo[&next=/path]` is a development-only sign-in
