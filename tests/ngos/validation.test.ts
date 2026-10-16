@@ -10,8 +10,8 @@ const validInput = {
   shortDescription: "Fighting hunger with local food banks.",
   mission: "We distribute surplus food to families facing food insecurity.",
   primaryCause: "HUNGER_RELIEF",
-  hqCountryCode: "FR",
-  operatingCountryCodes: ["FR", "SN"],
+  hqCountryCode: "FRA",
+  operatingCountryCodes: ["FRA", "SEN"],
 };
 
 describe("ngoCreateSchema", () => {
@@ -53,14 +53,14 @@ describe("ngoCreateSchema", () => {
   });
 
   it("rejects an unknown country code", () => {
-    const result = ngoCreateSchema.safeParse({ ...validInput, hqCountryCode: "XX" });
+    const result = ngoCreateSchema.safeParse({ ...validInput, hqCountryCode: "XXX" });
     expect(result.success).toBe(false);
   });
 
   it("normalizes lowercase country codes", () => {
-    const result = ngoCreateSchema.safeParse({ ...validInput, hqCountryCode: "fr" });
+    const result = ngoCreateSchema.safeParse({ ...validInput, hqCountryCode: "fra" });
     expect(result.success).toBe(true);
-    if (result.success) expect(result.data.hqCountryCode).toBe("FR");
+    if (result.success) expect(result.data.hqCountryCode).toBe("FRA");
   });
 
   it("rejects an empty list of operating countries", () => {
@@ -71,7 +71,7 @@ describe("ngoCreateSchema", () => {
   it("rejects duplicate operating countries", () => {
     const result = ngoCreateSchema.safeParse({
       ...validInput,
-      operatingCountryCodes: ["FR", "FR"],
+      operatingCountryCodes: ["FRA", "FRA"],
     });
     expect(result.success).toBe(false);
   });

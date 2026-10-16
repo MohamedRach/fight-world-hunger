@@ -15,6 +15,7 @@ export interface NgoRepository {
   findByIdOrSlug(idOrSlug: string): Promise<Ngo | null>;
   findByName(name: string): Promise<Ngo | null>;
   findByRegistrationId(registrationId: string): Promise<Ngo | null>;
+  findByOperatingCountry(countryCode: string): Promise<Ngo[]>;
   create(data: Omit<Ngo, "id" | "createdAt" | "updatedAt">): Promise<Ngo>;
   update(id: string, data: Partial<Omit<Ngo, "id" | "createdAt" | "updatedAt">>): Promise<Ngo>;
   findMembership(userId: string, ngoId: string): Promise<NgoMembership | null>;
@@ -62,6 +63,12 @@ class InMemoryNgoRepository implements NgoRepository {
       if (ngo.registrationId === registrationId) return ngo;
     }
     return null;
+  }
+
+  async findByOperatingCountry(countryCode: string): Promise<Ngo[]> {
+    return [...this.ngos.values()]
+      .filter((ngo) => ngo.operatingCountryCodes.includes(countryCode))
+      .sort((a, b) => a.name.localeCompare(b.name));
   }
 
   async create(data: Omit<Ngo, "id" | "createdAt" | "updatedAt">): Promise<Ngo> {

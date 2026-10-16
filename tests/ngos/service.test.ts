@@ -18,8 +18,8 @@ const validInput = {
   shortDescription: "Fighting hunger with local food banks.",
   mission: "We distribute surplus food to families facing food insecurity.",
   primaryCause: "HUNGER_RELIEF",
-  hqCountryCode: "FR",
-  operatingCountryCodes: ["FR", "SN"],
+  hqCountryCode: "FRA",
+  operatingCountryCodes: ["FRA", "SEN"],
   registrationId: "REG-123",
 };
 

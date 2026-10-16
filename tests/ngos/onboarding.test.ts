@@ -19,8 +19,8 @@ const validDraft: OnboardingDraft = {
   name: "Food For All",
   shortDescription: "Fighting hunger with local food banks.",
   mission: "We distribute surplus food to families facing food insecurity.",
-  hqCountryCode: "FR",
-  operatingCountryCodes: ["FR", "SN"],
+  hqCountryCode: "FRA",
+  operatingCountryCodes: ["FRA", "SEN"],
   primaryCause: "HUNGER_RELIEF",
 };
 
@@ -100,13 +100,13 @@ describe("sanitizeDraft", () => {
     const draft = sanitizeDraft({
       name: 42,
       mission: "Valid mission",
-      operatingCountryCodes: ["FR", 3, null],
+      operatingCountryCodes: ["FRA", 3, null],
       socialLinks: { twitter: "https://x.com/ngo", evil: "https://evil.example" },
       isAdmin: true,
     });
     expect(draft.name).toBe("");
     expect(draft.mission).toBe("Valid mission");
-    expect(draft.operatingCountryCodes).toEqual(["FR"]);
+    expect(draft.operatingCountryCodes).toEqual(["FRA"]);
     expect(draft.socialLinks).toEqual({ ...EMPTY_DRAFT.socialLinks, twitter: "https://x.com/ngo" });
     expect(draft).not.toHaveProperty("isAdmin");
   });

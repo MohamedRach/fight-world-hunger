@@ -34,7 +34,7 @@
 | `socialLinks` | json \| null | `{ twitter?, facebook?, instagram?, linkedin? }` all URLs | |
 | `primaryCause` | enum `NgoCause` | required | see enum below |
 | `otherCauses` | enum `NgoCause`[] | may be empty, excludes `primaryCause` | |
-| `hqCountryCode` | string | required, ISO 3166-1 alpha-2 | |
+| `hqCountryCode` | string | required, ISO 3166-1 alpha-3 | `XKX` for Kosovo, matching discovery |
 | `hqCity` | string \| null | | |
 | `projectsSummary` | string \| null | ≤ 5000 chars | projects and initiatives |
 | `impactSummary` | string \| null | ≤ 5000 chars | |
@@ -71,7 +71,7 @@ Developer 2 (map/discovery) — **pending their review**.
 |---|---|---|
 | `id` | string (uuid) | PK |
 | `ngoId` | string | FK → NGO, required |
-| `countryCode` | string | ISO 3166-1 alpha-2, required |
+| `countryCode` | string | ISO 3166-1 alpha-3, required (convention set by discovery, Developer 2) |
 
 Unique constraint on (`ngoId`, `countryCode`). Index on `countryCode` for
 "NGOs in country X" queries.

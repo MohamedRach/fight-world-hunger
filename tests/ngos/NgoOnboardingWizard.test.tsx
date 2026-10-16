@@ -28,7 +28,7 @@ function fillIdentity() {
 }
 
 function fillGeography() {
-  fireEvent.change(screen.getByLabelText(/^Headquarters country/), { target: { value: "FR" } });
+  fireEvent.change(screen.getByLabelText(/^Headquarters country/), { target: { value: "FRA" } });
   fireEvent.click(screen.getByRole("checkbox", { name: "France" }));
   fireEvent.click(screen.getByRole("checkbox", { name: "Senegal" }));
 }
@@ -115,8 +115,8 @@ describe("NgoOnboardingWizard", () => {
     expect(init.method).toBe("POST");
     expect(JSON.parse(init.body as string)).toMatchObject({
       name: "Food For All",
-      hqCountryCode: "FR",
-      operatingCountryCodes: ["FR", "SN"],
+      hqCountryCode: "FRA",
+      operatingCountryCodes: ["FRA", "SEN"],
       primaryCause: "HUNGER_RELIEF",
     });
     expect(window.localStorage.getItem("ngo-onboarding-draft:v1")).toBeNull();
@@ -157,6 +157,21 @@ describe("NgoOnboardingWizard", () => {
 
     expect(screen.getByText("We restored the progress saved on this device.")).toBeInTheDocument();
     expect(screen.getByLabelText(/^NGO name/)).toHaveValue("Saved NGO");
+  });
+
+  it("pre-selects the country the user came from on the map", () => {
+    render(<NgoOnboardingWizard initialCountryCode="KEN" />);
+    expect(screen.getByText("Registering an NGO working in Kenya")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Start onboarding" }));
+    expect(
+      screen.getByText("Kenya has been added to your countries of operation."),
+    ).toBeInTheDocument();
+
+    fillIdentity();
+    fireEvent.click(continueButton());
+    expect(screen.getByRole("checkbox", { name: "Kenya" })).toBeChecked();
+    expect(screen.getByRole("button", { name: "Remove Kenya" })).toBeInTheDocument();
   });
 
   it("prevents choosing the primary cause again as an additional cause", () => {

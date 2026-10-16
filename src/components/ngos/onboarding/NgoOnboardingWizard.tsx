@@ -20,7 +20,7 @@ import {
   type SocialKey,
 } from "@/features/ngos/onboarding";
 import { NGO_CAUSES, NGO_CAUSE_LABELS, type NgoPublicProfile } from "@/features/ngos/types";
-import { COUNTRIES } from "@/features/ngos/countries";
+import { COUNTRIES, countryName } from "@/features/ngos/countries";
 import { CheckboxGroup, CountryMultiSelect, SelectInput, TextArea, TextInput } from "./fields";
 import { OnboardingStepper } from "./OnboardingStepper";
 import { OnboardingReview } from "./OnboardingReview";
@@ -64,7 +64,12 @@ const primaryButton =
 const secondaryButton =
   "rounded-full border border-black/15 px-5 py-2.5 text-sm font-medium hover:bg-black/5 dark:border-white/20 dark:hover:bg-white/10";
 
-export function NgoOnboardingWizard() {
+export function NgoOnboardingWizard({
+  initialCountryCode,
+}: {
+  /** Pre-selected country of operation, e.g. when arriving from the map. */
+  initialCountryCode?: string;
+} = {}) {
   const uid = useId();
   const [phase, setPhase] = useState<Phase>("welcome");
   const [current, setCurrent] = useState(0);
@@ -131,10 +136,20 @@ export function NgoOnboardingWizard() {
 
   function start() {
     const saved = loadDraft();
-    if (saved) {
-      setDraft(saved);
-      setNotice("We restored the progress saved on this device.");
+    let initial = saved ?? EMPTY_DRAFT;
+    const notices: string[] = [];
+    if (saved) notices.push("We restored the progress saved on this device.");
+    if (initialCountryCode && !initial.operatingCountryCodes.includes(initialCountryCode)) {
+      initial = {
+        ...initial,
+        operatingCountryCodes: [...initial.operatingCountryCodes, initialCountryCode],
+      };
+      notices.push(
+        `${countryName(initialCountryCode)} has been added to your countries of operation.`,
+      );
     }
+    setDraft(initial);
+    setNotice(notices.length > 0 ? notices.join(" ") : null);
     goTo("steps", 0);
   }
 
@@ -490,6 +505,11 @@ export function NgoOnboardingWizard() {
           Create your organization&apos;s public profile so donors around the world can
           discover your work, understand your impact, and support you.
         </p>
+        {initialCountryCode && (
+          <p className="mt-4 inline-flex rounded-full bg-emerald-600/10 px-4 py-1.5 text-sm font-medium text-emerald-800 dark:bg-emerald-400/15 dark:text-emerald-200">
+            Registering an NGO working in {countryName(initialCountryCode)}
+          </p>
+        )}
 
         <div className="mt-8 grid gap-4 sm:grid-cols-2">
           <div className="rounded-xl border border-black/10 p-5 dark:border-white/15">
@@ -568,6 +588,9 @@ export function NgoOnboardingWizard() {
         <div className="mt-8 flex flex-wrap justify-center gap-3">
           <Link href={`/ngos/${created.slug}`} className={primaryButton}>
             View public profile
+          </Link>
+          <Link href="/map" className={secondaryButton}>
+            See it on the map
           </Link>
           <Link href="/dashboard" className={secondaryButton}>
             Go to dashboard
