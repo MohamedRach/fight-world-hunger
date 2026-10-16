@@ -52,7 +52,7 @@ const ngoBaseSchema = z.strictObject({
     .nullish(),
   socialLinks: socialLinksSchema.nullish(),
   primaryCause: causeSchema,
-  otherCauses: z.array(causeSchema).max(NGO_CAUSES.length).default([]),
+  otherCauses: z.array(causeSchema).max(NGO_CAUSES.length),
   hqCountryCode: countryCodeSchema,
   hqCity: z.string().trim().max(120).nullish(),
   operatingCountryCodes: z
@@ -60,10 +60,7 @@ const ngoBaseSchema = z.strictObject({
     .min(1, "Select at least one country of operation"),
   projectsSummary: z.string().trim().max(5000).nullish(),
   impactSummary: z.string().trim().max(5000).nullish(),
-  keyAchievements: z
-    .array(z.string().trim().min(1).max(300))
-    .max(20)
-    .default([]),
+  keyAchievements: z.array(z.string().trim().min(1).max(300)).max(20),
 });
 
 type NgoBaseValues = Partial<z.infer<typeof ngoBaseSchema>>;
@@ -92,7 +89,14 @@ function addCrossFieldIssues(value: NgoBaseValues, ctx: z.RefinementCtx) {
   }
 }
 
-export const ngoCreateSchema = ngoBaseSchema.superRefine(addCrossFieldIssues);
+// Defaults live only on the create schema: zod applies defaults even inside
+// `.partial()`, which would make a PATCH that omits these fields wipe them.
+export const ngoCreateSchema = ngoBaseSchema
+  .extend({
+    otherCauses: ngoBaseSchema.shape.otherCauses.default([]),
+    keyAchievements: ngoBaseSchema.shape.keyAchievements.default([]),
+  })
+  .superRefine(addCrossFieldIssues);
 
 export const ngoUpdateSchema = ngoBaseSchema.partial().superRefine(addCrossFieldIssues);
 

@@ -34,6 +34,17 @@ export class NgoServiceError extends Error {
   }
 }
 
+/** Slug derived from the name, suffixed (-2, -3…) when already taken. */
+async function uniqueSlug(name: string): Promise<string> {
+  const repo = getNgoRepository();
+  const base = slugify(name) || "ngo";
+  let candidate = base;
+  for (let suffix = 2; await repo.findByIdOrSlug(candidate); suffix += 1) {
+    candidate = `${base}-${suffix}`;
+  }
+  return candidate;
+}
+
 export async function getPublicNgoProfile(
   idOrSlug: string,
 ): Promise<NgoPublicProfile | null> {
@@ -74,7 +85,7 @@ export async function createNgo(
   }
 
   const ngo = await repo.create({
-    slug: slugify(data.name),
+    slug: await uniqueSlug(data.name),
     name: data.name,
     logoUrl: data.logoUrl ?? null,
     shortDescription: data.shortDescription,

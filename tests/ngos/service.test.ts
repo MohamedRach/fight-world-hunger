@@ -71,6 +71,18 @@ describe("createNgo", () => {
     expect(profile).not.toHaveProperty("createdByUserId");
   });
 
+  it("gives NGOs with similar names distinct web addresses", async () => {
+    const first = await createNgo(OWNER, validInput);
+    const second = await createNgo(OWNER, {
+      ...validInput,
+      name: "Food-For-All",
+      registrationId: "REG-456",
+    });
+    expect(first.slug).toBe("food-for-all");
+    expect(second.slug).toBe("food-for-all-2");
+    expect((await getPublicNgoProfile("food-for-all-2"))?.name).toBe("Food-For-All");
+  });
+
   it("rejects a duplicate NGO name", async () => {
     await createNgo(OWNER, validInput);
     await expectServiceError(
@@ -141,6 +153,17 @@ describe("updateNgo", () => {
     expect(updated.hqCity).toBe("Paris");
     expect(updated.impactSummary).toBe("Served 10,000 meals in 2025.");
     expect(updated.name).toBe("Food For All");
+  });
+
+  it("keeps fields that a partial update does not mention", async () => {
+    const created = await createNgo(OWNER, {
+      ...validInput,
+      otherCauses: ["EDUCATION"],
+      keyAchievements: ["Opened 3 food banks"],
+    });
+    const updated = await updateNgo(OWNER, created.id, { hqCity: "Paris" });
+    expect(updated.otherCauses).toEqual(["EDUCATION"]);
+    expect(updated.keyAchievements).toEqual(["Opened 3 food banks"]);
   });
 
   it("rejects renaming to another NGO's name", async () => {
