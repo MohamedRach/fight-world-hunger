@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import { HungerGlobeExplorer } from "@/components/map/HungerGlobeExplorer";
+import { MapSignInButtons } from "@/components/sign-in/MapSignInButtons";
 import { COUNTRY_GEOMETRY_ATTRIBUTION } from "@/features/geography/geometry";
 import { formatRetrievalDate } from "@/features/hunger/format";
 import { loadHungerDataset } from "@/features/hunger/server/load-hunger-data";
@@ -27,6 +28,7 @@ export default async function MapPage() {
               undernourishment. Hover over a country for its figure, or click it to see the
               organisations working there.
             </p>
+            <MapSignInButtons />
           </div>
           <p className="text-[11px] leading-snug text-slate-400 sm:max-w-xs sm:text-right">
             {dataset.indicator.name} ({dataset.indicator.unit}) — {dataset.indicator.producer},

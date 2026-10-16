@@ -1,4 +1,5 @@
 import type { NgoSummary } from "../types";
+import { ngoProfileDiscoveryRepository } from "@/features/ngos/discovery-adapter";
 
 /**
  * Read-side access to NGOs for discovery features.
@@ -27,7 +28,8 @@ export class InMemoryNgoRepository implements NgoRepository {
   }
 }
 
-let repository: NgoRepository = new InMemoryNgoRepository();
+// Default: NGO profiles from the NGO-profile feature (Developer 3).
+let repository: NgoRepository = ngoProfileDiscoveryRepository;
 
 export function getNgoRepository(): NgoRepository {
   return repository;

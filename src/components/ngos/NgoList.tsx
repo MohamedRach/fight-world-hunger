@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 
 import type { ApiErrorResponse, NgosByCountryResponse } from "@/features/discovery/types";
 import { NgoCard } from "./NgoCard";
+import { RegisterNgoInCountryLink } from "./RegisterNgoInCountryLink";
 
 interface NgoListProps {
   countryCode: string;
@@ -99,9 +100,12 @@ export function NgoList({ countryCode, countryName }: NgoListProps) {
 
   if (meta.total === 0) {
     return (
-      <p className="rounded-lg border border-dashed border-white/15 p-3 text-xs text-slate-400">
-        No NGOs are registered as operating in {countryName} yet.
-      </p>
+      <div>
+        <p className="rounded-lg border border-dashed border-white/15 p-3 text-xs text-slate-400">
+          No NGOs are registered as operating in {countryName} yet.
+        </p>
+        <RegisterNgoInCountryLink countryCode={countryCode} countryName={countryName} hasNgos={false} />
+      </div>
     );
   }
 
@@ -117,6 +121,7 @@ export function NgoList({ countryCode, countryName }: NgoListProps) {
           </li>
         ))}
       </ul>
+      <RegisterNgoInCountryLink countryCode={countryCode} countryName={countryName} hasNgos />
     </div>
   );
 }
