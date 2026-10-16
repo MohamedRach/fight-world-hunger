@@ -41,12 +41,21 @@ export function resolveCountryCode(
   return PROVIDER_CODE_OVERRIDES[properties.adm0_a3] ?? null;
 }
 
+/** Resolves ISO alpha-2: ISO_A2 → ISO_A2_EH → null (used for flags and provider lookups). */
+export function resolveIso2(
+  properties: Pick<CountryFeatureProperties, "iso_a2" | "iso_a2_eh">,
+): string | null {
+  if (isIso2(properties.iso_a2)) return properties.iso_a2;
+  if (isIso2(properties.iso_a2_eh)) return properties.iso_a2_eh;
+  return null;
+}
+
 export function resolveCountry(feature: CountryFeature): ResolvedCountry {
   const { properties } = feature;
   return {
     feature,
     code: resolveCountryCode(properties),
     name: properties.name,
-    iso2: isIso2(properties.iso_a2) ? properties.iso_a2 : null,
+    iso2: resolveIso2(properties),
   };
 }

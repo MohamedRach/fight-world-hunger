@@ -37,6 +37,7 @@ const features = source.features.map((feature) => {
       iso_a3: p.ISO_A3,
       iso_a3_eh: p.ISO_A3_EH,
       iso_a2: p.ISO_A2,
+      iso_a2_eh: p.ISO_A2_EH,
       adm0_a3: p.ADM0_A3,
       wb_a3: p.WB_A3,
       continent: p.CONTINENT,

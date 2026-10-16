@@ -8,6 +8,11 @@ Built with Next.js (App Router), TypeScript, Tailwind CSS, and PostgreSQL.
 
 All contributors — human and AI agents — must read [`docs/TEAM_DEVELOPMENT_GUIDE.md`](docs/TEAM_DEVELOPMENT_GUIDE.md) before making changes. It defines the architecture, feature ownership, shared-file rules, database and API contracts, coding standards, and Git workflow.
 
+Feature documentation:
+
+- [`docs/API_CONTRACTS.md`](docs/API_CONTRACTS.md) — HTTP endpoints and response envelopes.
+- [`docs/FEWSNET_REGIONAL_DATA.md`](docs/FEWSNET_REGIONAL_DATA.md) — FEWS NET sub-national acute food insecurity integration (endpoints, data model, caching, attribution, limitations).
+
 ## Getting started
 
 ```bash

@@ -4,21 +4,24 @@ import { useCallback, useEffect, useImperativeHandle, useRef, type Ref } from "r
 import Globe, { type GlobeMethods } from "react-globe.gl";
 
 import type { ResolvedCountry } from "@/features/geography/types";
-import { countryKey } from "./useCountrySelection";
+import { polygonGeometry, polygonKey, type GlobePolygon } from "./globe-polygons";
 
 export interface GlobeViewHandle {
   focusCountry: (country: ResolvedCountry) => void;
+  focusPoint: (target: { lat: number; lng: number; altitude: number }) => void;
   zoomBy: (factor: number) => void;
   resetView: () => void;
 }
 
 export interface WorldHungerGlobeProps {
-  countries: ResolvedCountry[];
-  colorForCountry: (country: ResolvedCountry) => string;
-  hovered: ResolvedCountry | null;
-  selected: ResolvedCountry | null;
-  onHover: (country: ResolvedCountry | null) => void;
-  onSelect: (country: ResolvedCountry) => void;
+  polygons: GlobePolygon[];
+  colorForPolygon: (polygon: GlobePolygon) => string;
+  hoveredKey: string | null;
+  selectedKey: string | null;
+  /** Pauses auto-rotation, e.g. while a country or region is being explored. */
+  interactionActive: boolean;
+  onHover: (polygon: GlobePolygon | null) => void;
+  onSelect: (polygon: GlobePolygon) => void;
   width: number;
   height: number;
   handleRef?: Ref<GlobeViewHandle>;
@@ -29,23 +32,26 @@ const OCEAN_TEXTURE_DATA_URL =
   "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVR4nGPgV3QAAACzAHEcz0MKAAAAAElFTkSuQmCC";
 const ATMOSPHERE_COLOR = "#3b82f6";
 const DEFAULT_ALTITUDE = 2.2;
-const MIN_ALTITUDE = 0.6;
+const MIN_ALTITUDE = 0.2;
 const MAX_ALTITUDE = 4;
 const FOCUS_ALTITUDE = 1.6;
 
 const BASE_POLYGON_ALTITUDE = 0.006;
+const REGION_POLYGON_ALTITUDE = 0.01;
 const HOVER_POLYGON_ALTITUDE = 0.02;
 const SELECTED_POLYGON_ALTITUDE = 0.035;
 
 const STROKE_DEFAULT = "rgba(255,255,255,0.28)";
+const STROKE_REGION = "rgba(255,255,255,0.45)";
 const STROKE_ACTIVE = "#ffffff";
 const SIDE_COLOR = "rgba(255,255,255,0.12)";
 
 export default function WorldHungerGlobe({
-  countries,
-  colorForCountry,
-  hovered,
-  selected,
+  polygons,
+  colorForPolygon,
+  hoveredKey,
+  selectedKey,
+  interactionActive,
   onHover,
   onSelect,
   width,
@@ -53,8 +59,6 @@ export default function WorldHungerGlobe({
   handleRef,
 }: WorldHungerGlobeProps) {
   const globeRef = useRef<GlobeMethods | undefined>(undefined);
-  const hoveredKey = hovered ? countryKey(hovered) : null;
-  const selectedKey = selected ? countryKey(selected) : null;
 
   const setAutoRotate = useCallback((enabled: boolean) => {
     const controls = globeRef.current?.controls();
@@ -75,8 +79,8 @@ export default function WorldHungerGlobe({
   }, []);
 
   useEffect(() => {
-    setAutoRotate(!selected && !hovered);
-  }, [hovered, selected, setAutoRotate]);
+    setAutoRotate(!interactionActive && hoveredKey === null);
+  }, [hoveredKey, interactionActive, setAutoRotate]);
 
   useImperativeHandle(
     handleRef,
@@ -85,6 +89,12 @@ export default function WorldHungerGlobe({
         const { label_lat, label_lng } = country.feature.properties;
         globeRef.current?.pointOfView(
           { lat: label_lat, lng: label_lng, altitude: FOCUS_ALTITUDE },
+          900,
+        );
+      },
+      focusPoint(target) {
+        globeRef.current?.pointOfView(
+          { ...target, altitude: Math.min(MAX_ALTITUDE, Math.max(MIN_ALTITUDE, target.altitude)) },
           900,
         );
       },
@@ -105,14 +115,6 @@ export default function WorldHungerGlobe({
     [],
   );
 
-  const isActive = useCallback(
-    (country: ResolvedCountry) => {
-      const key = countryKey(country);
-      return key === hoveredKey || key === selectedKey;
-    },
-    [hoveredKey, selectedKey],
-  );
-
   return (
     <Globe
       ref={globeRef}
@@ -124,27 +126,31 @@ export default function WorldHungerGlobe({
       atmosphereColor={ATMOSPHERE_COLOR}
       atmosphereAltitude={0.18}
       onGlobeReady={handleGlobeReady}
-      polygonsData={countries}
+      polygonsData={polygons}
       polygonGeoJsonGeometry={(d) =>
         // globe.gl types GeoJSON geometry loosely; our features are valid GeoJSON.
-        (d as ResolvedCountry).feature.geometry as unknown as { type: string; coordinates: number[] }
+        polygonGeometry(d as GlobePolygon) as unknown as { type: string; coordinates: number[] }
       }
-      polygonCapColor={(d) => colorForCountry(d as ResolvedCountry)}
+      polygonCapColor={(d) => colorForPolygon(d as GlobePolygon)}
       polygonSideColor={() => SIDE_COLOR}
-      polygonStrokeColor={(d) =>
-        isActive(d as ResolvedCountry) ? STROKE_ACTIVE : STROKE_DEFAULT
-      }
+      polygonStrokeColor={(d) => {
+        const polygon = d as GlobePolygon;
+        const key = polygonKey(polygon);
+        if (key === hoveredKey || key === selectedKey) return STROKE_ACTIVE;
+        return polygon.kind === "region" ? STROKE_REGION : STROKE_DEFAULT;
+      }}
       polygonAltitude={(d) => {
-        const key = countryKey(d as ResolvedCountry);
+        const polygon = d as GlobePolygon;
+        const key = polygonKey(polygon);
         if (key === selectedKey) return SELECTED_POLYGON_ALTITUDE;
         if (key === hoveredKey) return HOVER_POLYGON_ALTITUDE;
-        return BASE_POLYGON_ALTITUDE;
+        return polygon.kind === "region" ? REGION_POLYGON_ALTITUDE : BASE_POLYGON_ALTITUDE;
       }}
       polygonsTransitionDuration={250}
-      // The default label accessor reads `name`; the React CountryTooltip replaces it.
+      // The default label accessor reads `name`; the React tooltips replace it.
       polygonLabel={() => ""}
-      onPolygonHover={(polygon) => onHover((polygon as ResolvedCountry | null) ?? null)}
-      onPolygonClick={(polygon) => onSelect(polygon as ResolvedCountry)}
+      onPolygonHover={(polygon) => onHover((polygon as GlobePolygon | null) ?? null)}
+      onPolygonClick={(polygon) => onSelect(polygon as GlobePolygon)}
     />
   );
 }
