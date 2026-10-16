@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getPublicNgoProfile } from "@/features/ngos/service";
 import { NgoProfileHeader } from "@/components/ngos/NgoProfileHeader";
@@ -37,17 +38,12 @@ export default async function NgoProfilePage(props: PageProps<"/ngos/[ngoId]">) 
         <p className="mx-auto mt-2 max-w-xl text-sm opacity-80">
           Your donation helps {ngo.name} continue its work.
         </p>
-        {/* INTEGRATION PLACEHOLDER: link to Developer 4's donation flow once
-            it exists (see docs/TEAM_DEVELOPMENT_GUIDE.md §4). */}
-        <button
-          type="button"
-          disabled
-          aria-disabled="true"
-          title="Donations are coming soon"
-          className="mt-4 cursor-not-allowed rounded-full bg-emerald-600 px-6 py-2.5 font-medium text-white opacity-60 dark:bg-emerald-500"
+        <Link
+          href={`/donations/new?ngo=${encodeURIComponent(ngo.slug)}`}
+          className="mt-4 inline-block rounded-full bg-emerald-600 px-6 py-2.5 font-medium text-white hover:bg-emerald-700 dark:bg-emerald-500 dark:text-emerald-950"
         >
-          Support this NGO — coming soon
-        </button>
+          Support this NGO
+        </Link>
       </div>
     </main>
   );

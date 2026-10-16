@@ -149,3 +149,103 @@ decide between the dashboard and NGO registration.
 (email, no password) that sets the session stub's cookie. One account can
 hold an individual profile **and** NGO memberships. `next` accepts same-site
 paths only. To be replaced by Developer 1's authentication.
+
+---
+
+## Donations (Developer 4)
+
+> **Status: PROPOSAL.** It is based on the defaults suggested in
+> `TEAM_DEVELOPMENT_GUIDE.md` §8, pending the team's §16 decisions. A
+> donation is a **monetary pledge**: no payment is processed (§1.3). Handlers
+> resolve the user with `getSessionUser()` (temporary accounts). Business
+> rules live in `src/features/donations/service.ts`.
+
+```ts
+type DonationStatus =
+  "PENDING" | "CONFIRMED" | "IN_PROGRESS" | "COMPLETED" | "REJECTED" | "CANCELLED";
+type DonationCurrency = "USD" | "EUR" | "GBP";
+
+type DonationView = {
+  id: string;
+  ngo: { id: string; slug: string; name: string };
+  amount: number;                 // major units, at most 2 decimals (e.g. 19.99)
+  currency: DonationCurrency;
+  message: string | null;         // donor's message to the NGO
+  isAnonymous: boolean;
+  donorName: string | null;       // null when an NGO views an anonymous donation
+  status: DonationStatus;
+  createdAt: string;              // ISO 8601
+  updatedAt: string;
+};
+
+type DonationDetail = DonationView & {
+  history: Array<{
+    id: string;
+    previousStatus: DonationStatus | null;  // null = donation created
+    newStatus: DonationStatus;
+    note: string | null;
+    actor: "DONOR" | "NGO";                 // user ids are never exposed
+    createdAt: string;
+  }>;                                       // oldest first
+  viewerRole: "DONOR" | "NGO";
+  allowedNextStatuses: DonationStatus[];    // empty for donors
+};
+```
+
+**Visibility:** a donation is visible only to its donor and to members
+(`OWNER`/`EDITOR`) of the receiving NGO. Anyone else gets `404 NOT_FOUND`,
+which does not reveal whether the donation exists.
+
+### POST `/api/donations`
+
+- **Auth:** required, **individual accounts only** (`403 FORBIDDEN` for NGO accounts).
+- **Body:** `{ ngoId: string; amount: number; currency: DonationCurrency; message?: string | null; isAnonymous?: boolean }`
+  - `ngoId`: an NGO id or slug.
+  - `amount`: a JSON number from 1 to 1,000,000 with at most 2 decimals. It is stored in minor units.
+  - `message`: at most 500 characters. Blank becomes `null`.
+  - `isAnonymous`: defaults to the donor's `donateAnonymously` profile preference.
+  - Unknown fields, such as `status` or `donorUserId`, are rejected.
+- **201** `{ data: DonationDetail }`. The status is always `PENDING`, and one
+  history entry records the creation.
+- **Errors:** `400 VALIDATION_ERROR` (with `fieldErrors`; an unknown NGO gives `fieldErrors.ngoId`), `401 UNAUTHENTICATED`, `403 FORBIDDEN`
+
+### GET `/api/donations`
+
+- **Auth:** required.
+- **Query:** `ngoId?`, `status?: DonationStatus`, `limit?` (1–100, default 50), `offset?` (default 0).
+  - Individual accounts get their own donations. `ngoId` optionally narrows to one NGO, and an unknown NGO gives an empty list.
+  - NGO accounts must pass the `ngoId` of an NGO they manage. They get the donations that NGO received.
+- **200** `{ data: DonationView[], meta: { total: number; limit: number; offset: number } }`, newest first.
+- **Errors:** `400 VALIDATION_ERROR` (bad query; or NGO account without `ngoId`), `401 UNAUTHENTICATED`,
+  `403 FORBIDDEN` (not a member of that NGO), `404 NOT_FOUND` (unknown NGO, NGO accounts)
+
+### GET `/api/donations/:donationId`
+
+- **Auth:** required. Donor or receiving-NGO member.
+- **200** `{ data: DonationDetail }`
+- **Errors:** `401 UNAUTHENTICATED`, `404 NOT_FOUND`
+
+### PATCH `/api/donations/:donationId/status`
+
+- **Auth:** required. Only members of the **receiving NGO** may change the status.
+- **Body:** `{ status: DonationStatus; note?: string | null }`. The note has at
+  most 500 characters and is shown to the donor on the timeline.
+- **Rules:** allowed transitions (see `src/features/donations/status.ts`):
+  `PENDING → CONFIRMED | REJECTED`, `CONFIRMED → IN_PROGRESS | CANCELLED`,
+  `IN_PROGRESS → COMPLETED | CANCELLED`. `COMPLETED`, `REJECTED`, and
+  `CANCELLED` are terminal. The status update and its history entry are
+  written together.
+- **200** `{ data: DonationDetail }`
+- **Errors:** `400 VALIDATION_ERROR`, `401 UNAUTHENTICATED`,
+  `403 FORBIDDEN` (the donor), `404 NOT_FOUND` (not visible to the caller),
+  `409 INVALID_STATUS_TRANSITION`, `409 STATUS_CONFLICT` (the status changed
+  concurrently; reload and retry)
+
+### Pages
+
+| Path | Who | Purpose |
+|---|---|---|
+| `/donations/new?ngo=<id-or-slug>` | individuals | Pledge a donation (linked from "Support this NGO" on NGO profiles) |
+| `/donations` | individuals | Donation history, filterable by `?status=` |
+| `/donations/:donationId` | donor, NGO members | Progress tracker and timeline; NGO members can update the status |
+| `/dashboard/ngos/:ngoId/donations` | NGO members | Donations received, filterable by `?status=` |

@@ -113,3 +113,79 @@ One per `User`. Private to its owner.
 | `createdAt` / `updatedAt` | timestamp | required |
 
 A user may have both an `IndividualProfile` and `NGOMembership` rows.
+
+## Donations (proposed by Developer 4)
+
+> **Status: PROPOSAL.** These are logical models. Until the ORM lands, they
+> are persisted by the in-memory repository in
+> `src/features/donations/repository.ts`. Its interface documents the
+> transactional guarantees a PostgreSQL implementation must keep.
+
+**Decisions assumed, pending the team's §16 review:**
+
+- A donation is a **monetary pledge**. No payment is processed, and a
+  donation record is not proof of payment (guide §6). If payments are added,
+  model payment status separately from `status`.
+- Only individual accounts donate. NGO accounts cannot.
+- Status meanings:
+  - `PENDING`: pledge received.
+  - `CONFIRMED`: the NGO accepted it.
+  - `IN_PROGRESS`: the NGO is using it.
+  - `COMPLETED`: the NGO has finished using it.
+  - `REJECTED`: the NGO declined it.
+  - `CANCELLED`: stopped after confirmation.
+- Only members of the receiving NGO change the status. Donors can't cancel
+  their own donations.
+
+### Donation
+
+| Field | Type | Constraints | Notes |
+|---|---|---|---|
+| `id` | string (uuid) | PK | |
+| `donorUserId` | string | FK → User, required | |
+| `donorName` | string | required | Snapshot of the profile's `fullName` at donation time, so NGOs don't need to read private profiles |
+| `ngoId` | string | FK → NGO, required | Canonical id, even when the request used the slug |
+| `amountMinor` | integer | required, 100 – 100,000,000 | Minor units (cents/pence). Avoids float rounding |
+| `currency` | enum `DonationCurrency` | required | `USD`, `EUR`, `GBP` (all 2 decimals) |
+| `message` | string \| null | ≤ 500 chars | Donor's message to the NGO |
+| `isAnonymous` | boolean | required | Defaults to `IndividualProfile.donateAnonymously`. When true, the NGO never receives `donorName` |
+| `status` | enum `DonationStatus` | required, initial `PENDING` | Current status |
+| `createdAt` / `updatedAt` | timestamp | required | |
+
+**Enum `DonationStatus`:** `PENDING`, `CONFIRMED`, `IN_PROGRESS`, `COMPLETED`, `REJECTED`, `CANCELLED`
+
+Allowed transitions:
+
+- `PENDING → CONFIRMED | REJECTED`
+- `CONFIRMED → IN_PROGRESS | CANCELLED`
+- `IN_PROGRESS → COMPLETED | CANCELLED`
+- `COMPLETED`, `REJECTED`, and `CANCELLED` are terminal.
+
+### DonationStatusHistory
+
+An audit trail with one row per status change, including the creation.
+
+| Field | Type | Constraints | Notes |
+|---|---|---|---|
+| `id` | string (uuid) | PK | |
+| `donationId` | string | FK → Donation, required | |
+| `previousStatus` | enum `DonationStatus` \| null | | null for the creation entry |
+| `newStatus` | enum `DonationStatus` | required | |
+| `note` | string \| null | ≤ 500 chars | NGO's note to the donor, shown on the timeline |
+| `changedByUserId` | string | FK → User, required | Responsible actor (never exposed by the API) |
+| `changedByRole` | enum (`DONOR`, `NGO`) | required | |
+| `createdAt` | timestamp | required | |
+
+**Consistency:**
+
+- The donation and its first history row are inserted in one transaction.
+- A status change updates `Donation.status` and inserts the history row in
+  one transaction, guarded by the expected current status
+  (`UPDATE ... WHERE id = $1 AND status = $2`). This rejects concurrent
+  conflicting updates.
+
+### Suggested indexes
+
+- `Donation(donorUserId, createdAt DESC)`: donor history
+- `Donation(ngoId, status, createdAt DESC)`: NGO dashboard and status filter
+- `DonationStatusHistory(donationId, createdAt)`: timeline

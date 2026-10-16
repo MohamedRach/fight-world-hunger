@@ -53,7 +53,13 @@ export default async function MyProfilePage() {
         <Link href="/map" className="underline underline-offset-2 opacity-70 hover:opacity-100">
           ← Back to the map
         </Link>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
+          <Link
+            href="/donations"
+            className="rounded-full border border-black/15 px-4 py-1.5 text-sm font-medium hover:bg-black/5 dark:border-white/20 dark:hover:bg-white/10"
+          >
+            My donations
+          </Link>
           <span className="break-all opacity-70">{user.email}</span>
           <SignOutButton />
         </div>

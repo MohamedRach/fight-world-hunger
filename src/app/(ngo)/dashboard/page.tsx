@@ -106,6 +106,12 @@ export default async function NgoDashboardPage() {
                     Edit profile
                   </Link>
                   <Link
+                    href={`/dashboard/ngos/${ngo.id}/donations`}
+                    className="rounded-full border border-black/15 px-4 py-1.5 text-sm font-medium hover:bg-black/5 dark:border-white/20 dark:hover:bg-white/10"
+                  >
+                    Donations
+                  </Link>
+                  <Link
                     href={`/ngos/${ngo.slug}`}
                     className="rounded-full border border-black/15 px-4 py-1.5 text-sm font-medium hover:bg-black/5 dark:border-white/20 dark:hover:bg-white/10"
                   >
