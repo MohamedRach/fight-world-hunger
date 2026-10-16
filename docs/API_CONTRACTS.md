@@ -1,130 +1,151 @@
 # API Contracts
 
-Conventions (all endpoints):
+> **Status: PROPOSAL — not yet agreed by the team.**
+>
+> Only the NGO-profile endpoints (Developer 3) are documented so far.
+> Other owners add their endpoints here as they are designed.
+> Authentication is not yet implemented (Developer 1); these contracts
+> specify the intended auth behavior, currently enforced against a
+> temporary session stub (see "Authentication note" below).
 
-- Success: `{ "data": …, "meta": { … } }`
-- Error: `{ "error": { "code": "UPPER_SNAKE_CASE", "message": "user-safe text" } }`
-- Country identifiers in paths are ISO 3166-1 alpha-3 (3 letters, case-insensitive, normalised to upper case). Malformed codes → `400 INVALID_COUNTRY_CODE`.
-- All validation and authorisation happen on the server. Internal error details are logged, never returned.
+## Conventions
 
-Endpoints owned by other developers (NGO profiles, donations, auth) are not yet implemented and should be added here by their owners before integration.
+- All responses are JSON.
+- Success: `{ "data": ... }`
+- Error: `{ "error": { "code": string, "message": string, "fieldErrors"?: Record<string, string[]> } }`
+- Status codes: `200` OK, `201` created, `400` validation error, `401`
+  unauthenticated, `403` forbidden, `404` not found, `409` conflict.
 
----
+## Authentication note (temporary)
 
-## GET `/api/countries/:countryId/ngos`
-
-**Owner:** Developer 2 · **Auth:** none (public NGO summaries only) · **Since:** `feature/interactive-3d-hunger-globe`
-
-NGOs recorded as operating in the country.
-
-Response `200`:
-
-```json
-{
-  "data": [
-    {
-      "id": "string",
-      "name": "string",
-      "slug": "string",
-      "logoUrl": "string | null",
-      "shortDescription": "string",
-      "causes": ["string"],
-      "operatingCountryCodes": ["KEN", "SOM"],
-      "websiteUrl": "string | null"
-    }
-  ],
-  "meta": { "countryCode": "KEN", "total": 1 }
-}
-```
-
-Errors: `400 INVALID_COUNTRY_CODE`, `500 INTERNAL_ERROR`.  
-Cache: `public, max-age=60, stale-while-revalidate=300`.  
-Data source: `NgoRepository` (`src/features/discovery/server/ngo-repository.ts`). Until the NGO entity exists the repository is empty, so `data` is `[]`.
+Until Developer 1's auth lands, handlers resolve the current user via
+`src/features/ngos/session.ts` (`getSessionUser()`), which reads a dev-only
+`x-dev-user-id` header outside production. This file is a **stub to be
+replaced** by the shared auth helper; the authorization logic itself
+(membership checks) is real and server-side.
 
 ---
 
-## GET `/api/countries/:countryId/regions`
+## GET `/api/ngos/:ngoId`
 
-**Owner:** Developer 2 · **Auth:** none (FEWS NET public data) · **Since:** `feature/fewsnet-regional-hunger-data`
+Retrieve a public NGO profile. `:ngoId` may be the NGO `id` or its `slug`.
 
-Latest published FEWS NET *Current Situation* IPC-compatible acute food insecurity classification for the country's analysis areas, with simplified boundaries. See `docs/FEWSNET_REGIONAL_DATA.md`.
+- **Auth:** none (public).
+- **Response 200:** `{ "data": NgoPublicProfile }`
 
-Response `200` — `data` is a discriminated union on `status`:
-
-```json
-{
-  "data": {
-    "status": "available",
-    "dataset": {
-      "countryCode": "KEN",
-      "fewsNetCountryCode": "KE",
-      "countryName": "Kenya",
-      "indicator": { "id": "fewsnet-ipc-cs", "name": "…", "shortName": "IPC phase", "description": "…", "unit": "ipc-phase" },
-      "analysisDate": "2026-06-01",
-      "periodLabel": "Jun 2026",
-      "classificationScales": ["IPC 3.1"],
-      "sourceDocuments": ["Food Security Outlook, Kenya"],
-      "features": [
-        {
-          "type": "Feature",
-          "geometry": { "type": "Polygon", "coordinates": [[[lng, lat], …]] },
-          "properties": {
-            "kind": "region",
-            "fnid": "KE2016C312030016",
-            "geographicUnitId": 12345,
-            "name": "Southeastern Marginal Mixed Farming Zone",
-            "fullName": "Southeastern Marginal Mixed Farming Zone, Igembe Central, Meru, Kenya",
-            "unitType": "fsc_admin_lhz",
-            "phase": 2,
-            "rawValue": 2,
-            "description": "Stressed",
-            "classificationScale": "IPC 3.1",
-            "scenario": "CS",
-            "scenarioName": "Current Situation",
-            "assistanceVariant": "Not allowing for assistance",
-            "isAllowingForAssistance": false,
-            "periodStart": "2026-06-01",
-            "periodEnd": "2026-06-30",
-            "reportingDate": "2026-06-01",
-            "sourceOrganization": "FEWS NET",
-            "sourceDocument": "Food Security Outlook, Kenya",
-            "dataUsagePolicy": "Public",
-            "collectionStatus": "Published",
-            "modified": "2026-06-30T12:00:00"
-          }
-        }
-      ],
-      "pointUnits": [ /* RegionClassification without geometry, e.g. IDP camps */ ],
-      "summary": { "classified": 640, "notClassified": 0, "byPhase": { "1": 245, "2": 123, "3": 272, "4": 0, "5": 0 } },
-      "bbox": [33.9434, -4.6774, 41.8938, 5.4671],
-      "providerLastModified": "2026-06-30T12:00:00",
-      "retrievedAt": "2026-10-16T18:40:00.000Z",
-      "attribution": {
-        "name": "FEWS NET",
-        "fullName": "Famine Early Warning Systems Network (FEWS NET)",
-        "websiteUrl": "https://fews.net/",
-        "policyUrl": "https://help.fews.net/fdp/data-and-information-use-and-attribution-policy",
-        "datasetUrl": "https://fdw.fews.net/api/ipcphase.geojson?…",
-        "creditLine": "Source: FEWS NET acute food insecurity classification"
-      }
-    }
-  },
-  "meta": { "countryCode": "KEN", "retrievedAt": "2026-10-16T18:40:00.000Z", "cached": null }
-}
+```ts
+type NgoPublicProfile = {
+  id: string;
+  slug: string;
+  name: string;
+  logoUrl: string | null;
+  shortDescription: string;
+  mission: string;
+  activitiesDescription: string | null;
+  targetBeneficiaries: string | null;
+  yearFounded: number | null;
+  website: string | null;
+  contactEmail: string | null;
+  contactPhone: string | null;
+  socialLinks: { twitter?: string; facebook?: string; instagram?: string; linkedin?: string } | null;
+  primaryCause: NgoCause;
+  otherCauses: NgoCause[];
+  hqCountryCode: string;
+  hqCity: string | null;
+  operatingCountryCodes: string[];
+  projectsSummary: string | null;
+  impactSummary: string | null;
+  keyAchievements: string[];
+};
 ```
 
-Other `data.status` values (still HTTP `200`, since the request itself succeeded):
+- **Errors:** `404 NOT_FOUND` when no NGO matches.
+- **Privacy:** `registrationId`, `verificationStatus`, `createdByUserId`,
+  and membership data are **never** returned publicly.
 
-```json
-{ "status": "unavailable", "countryCode": "FRA", "fewsNetCountryCode": "FR",
-  "reason": "no-published-analysis" | "no-polygon-geometry", "message": "…" }
+## POST `/api/ngos`
 
-{ "status": "unsupported", "countryCode": "SOL",
-  "reason": "no-iso2" | "invalid-country-code", "message": "…" }
+Create an NGO profile. The creator becomes the NGO's `OWNER` member.
+
+- **Auth:** required (authenticated user).
+- **Body:** `NgoCreateInput` — same fields as `NgoPublicProfile` minus
+  `id`, `slug`, `operatingCountryCodes` replaced by required
+  `operatingCountryCodes: string[]` (min 1), plus optional
+  `registrationId`. Validation rules in `src/features/ngos/validation.ts`
+  (Zod) and `docs/DATABASE_SCHEMA.md`.
+- **Response 201:** `{ "data": NgoPublicProfile }`
+- **Errors:**
+  - `400 VALIDATION_ERROR` with `fieldErrors`.
+  - `401 UNAUTHENTICATED`.
+  - `409 DUPLICATE_NGO` when `name` or `registrationId` already exists.
+
+## PATCH `/api/ngos/:ngoId`
+
+Update an NGO profile. Partial update; only provided fields change.
+
+- **Auth:** required. Caller must hold an `OWNER` or `EDITOR`
+  `NGOMembership` for this NGO — checked server-side.
+- **Body:** `NgoUpdateInput` — any subset of `NgoCreateInput` fields.
+  Immutable via this endpoint: `id`, `slug`, `verificationStatus`,
+  `createdByUserId`.
+- **Response 200:** `{ "data": NgoPublicProfile }`
+- **Errors:**
+  - `400 VALIDATION_ERROR`
+  - `401 UNAUTHENTICATED`
+  - `403 FORBIDDEN` (no membership for this NGO)
+  - `404 NOT_FOUND`
+  - `409 DUPLICATE_NGO` (name/registrationId collision)
+
+---
+
+## Individual profile (Developer 3)
+
+The signed-in user's own profile. **Private:** there is no endpoint to read
+another person's profile, and NGOs cannot browse individuals.
+
+```ts
+type IndividualProfileView = {
+  id: string;
+  fullName: string;
+  email: string;
+  countryCode: string | null;          // ISO 3166-1 alpha-3
+  avatarUrl: string | null;
+  bio: string | null;                  // <= 500 chars
+  preferredCauses: NgoCause[];
+  preferredCountryCodes: string[];     // alpha-3, max 50
+  donateAnonymously: boolean;
+  contactConsent: boolean;
+};
 ```
 
-`phase` is `1–5` or `null` (not classified). Phases are categorical and must be rendered with the IPC palette (`src/features/fewsnet/source.ts`), never with the undernourishment scale.
+### GET `/api/me/individual-profile`
+- **Auth:** required. **200** `{ data: IndividualProfileView }`
+- **Errors:** `401 UNAUTHENTICATED`, `404 NOT_FOUND` (no profile yet)
 
-Errors: `400 INVALID_COUNTRY_CODE`, `503 UPSTREAM_UNAVAILABLE` (with `Retry-After: 120`), `502 UPSTREAM_INVALID_RESPONSE`, `500 INTERNAL_ERROR`.  
-Cache: `public, max-age=300, stale-while-revalidate=3600`; server-side `"use cache"` (hours for the analysis date, days for the dataset, minutes for failures).  
-Payload size: ~200–700 KB for large countries after simplification. Cold requests may take up to a minute (see the FEWS NET doc).
+### POST `/api/me/individual-profile`
+- **Auth:** required. One profile per account.
+- **Body:** `fullName`, `email` (required), optional fields above, and
+  `acceptPrivacyPolicy: true` (required; stored as an acceptance timestamp).
+- **201** `{ data: IndividualProfileView }`
+- **Errors:** `400 VALIDATION_ERROR`, `401 UNAUTHENTICATED`, `409 PROFILE_EXISTS`
+
+### PATCH `/api/me/individual-profile`
+- **Auth:** required. Partial update; omitted fields are unchanged.
+- **200** `{ data: IndividualProfileView }`
+- **Errors:** `400 VALIDATION_ERROR`, `401 UNAUTHENTICATED`, `404 NOT_FOUND`
+
+## GET `/api/me/ngos` (Developer 3)
+
+NGOs the signed-in user manages (owner or editor). Used by NGO sign-in to
+decide between the dashboard and NGO registration.
+
+- **Auth:** required. **200** `{ data: Array<{ id: string; name: string; slug: string }> }`
+  (empty array when the account has no NGO).
+- **Errors:** `401 UNAUTHENTICATED`
+
+## Sign-in (temporary)
+
+`/sign-in?as=individual|ngo[&next=/path]` is a development-only sign-in
+(email, no password) that sets the session stub's cookie. One account can
+hold an individual profile **and** NGO memberships. `next` accepts same-site
+paths only. To be replaced by Developer 1's authentication.
