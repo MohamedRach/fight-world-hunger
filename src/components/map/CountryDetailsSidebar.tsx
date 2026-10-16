@@ -14,6 +14,10 @@ interface CountryDetailsSidebarProps {
   onClose: () => void;
   /** NGO list for the selected country. */
   children?: ReactNode;
+  /** Optional regional (sub-national) data section, rendered between hunger data and NGOs. */
+  regionalSection?: ReactNode;
+  /** Optional note shown under the NGO heading, e.g. a coverage limitation. */
+  ngoNote?: ReactNode;
 }
 
 function CountryFlag({ iso2, name }: { iso2: string; name: string }) {
@@ -40,6 +44,8 @@ export function CountryDetailsSidebar({
   dataset,
   onClose,
   children,
+  regionalSection,
+  ngoNote,
 }: CountryDetailsSidebarProps) {
   const headingRef = useRef<HTMLHeadingElement>(null);
   const severity = classifyHungerValue(observation?.value);
@@ -160,10 +166,20 @@ export function CountryDetailsSidebar({
           </dl>
         </section>
 
+        {regionalSection ? (
+          <section aria-labelledby="country-regions-title">
+            <h3 id="country-regions-title" className="text-sm font-semibold text-white">
+              Regional food security (FEWS NET)
+            </h3>
+            <div className="mt-2">{regionalSection}</div>
+          </section>
+        ) : null}
+
         <section aria-labelledby="country-ngos-title">
           <h3 id="country-ngos-title" className="text-sm font-semibold text-white">
             NGOs operating in {country.name}
           </h3>
+          {ngoNote ? <div className="mt-1">{ngoNote}</div> : null}
           <div className="mt-2">
             {country.code ? (
               children

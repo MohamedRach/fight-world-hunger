@@ -8,6 +8,8 @@ export interface CountryFeatureProperties {
   /** ISO alpha-3 including "exceptional" homeland assignments (fixes France/Norway). */
   iso_a3_eh: string;
   iso_a2: string;
+  /** ISO alpha-2 including "exceptional" homeland assignments (fixes France/Norway). */
+  iso_a2_eh?: string;
   adm0_a3: string;
   wb_a3: string;
   continent: string;

@@ -11,6 +11,8 @@ import {
   type PointerEvent as ReactPointerEvent,
 } from "react";
 
+import { ipcPhaseColor, REGION_MODE_COUNTRY_COLOR } from "@/features/fewsnet/source";
+import type { RegionClassification, RegionalDataset } from "@/features/fewsnet/types";
 import { resolveCountry } from "@/features/geography/country-codes";
 import { fetchCountryGeometry } from "@/features/geography/geometry";
 import type { ResolvedCountry } from "@/features/geography/types";
@@ -21,7 +23,17 @@ import { CountryDetailsSidebar } from "./CountryDetailsSidebar";
 import { CountryTooltip } from "./CountryTooltip";
 import { GlobeControls } from "./GlobeControls";
 import { HungerLegend } from "./HungerLegend";
-import { useCountrySelection } from "./useCountrySelection";
+import { IpcLegend } from "./IpcLegend";
+import { RegionTooltip } from "./RegionTooltip";
+import { RegionalExplorerPanel } from "./RegionalExplorerPanel";
+import {
+  altitudeForBbox,
+  bboxCenter,
+  polygonKey,
+  type GlobePolygon,
+} from "./globe-polygons";
+import { countryKey, useCountrySelection } from "./useCountrySelection";
+import { useRegionalData } from "./useRegionalData";
 import type { GlobeViewHandle } from "./WorldHungerGlobe";
 
 const WorldHungerGlobe = dynamic(() => import("./WorldHungerGlobe"), {
@@ -37,6 +49,11 @@ type GeometryState =
   | { status: "loading" }
   | { status: "error"; message: string }
   | { status: "ready"; countries: ResolvedCountry[] };
+
+interface RegionSelection {
+  countryKey: string;
+  fnid: string;
+}
 
 function GlobeStatus({ message, isError = false }: { message: string; isError?: boolean }) {
   return (
@@ -81,7 +98,26 @@ export function HungerGlobeExplorer({ dataset }: HungerGlobeExplorerProps) {
   const [size, setSize] = useState({ width: 0, height: 0 });
   const [pointer, setPointer] = useState({ x: 0, y: 0 });
   const [geometry, setGeometry] = useState<GeometryState>({ status: "loading" });
-  const { hovered, selected, hover, select, clearSelection } = useCountrySelection();
+  const [hoveredPolygon, setHoveredPolygon] = useState<GlobePolygon | null>(null);
+  const { selected, select, clearSelection } = useCountrySelection();
+
+  // Region mode and region selection are keyed by country so they reset
+  // automatically when a different country is selected.
+  const [regionModeCountry, setRegionModeCountry] = useState<string | null>(null);
+  const [regionSelection, setRegionSelection] = useState<RegionSelection | null>(null);
+
+  const selectedKey = selected ? countryKey(selected) : null;
+  const regionMode = selectedKey !== null && regionModeCountry === selectedKey;
+  const { state: regionalState, retry: retryRegional } = useRegionalData(
+    selected?.code ?? null,
+    regionMode,
+  );
+  const regionalDataset: RegionalDataset | null =
+    regionMode &&
+    regionalState.status === "ready" &&
+    regionalState.availability.status === "available"
+      ? regionalState.availability.dataset
+      : null;
 
   useEffect(() => {
     const controller = new AbortController();
@@ -110,10 +146,46 @@ export function HungerGlobeExplorer({ dataset }: HungerGlobeExplorerProps) {
     return () => observer.disconnect();
   }, []);
 
-  const colorForCountry = useCallback(
-    (country: ResolvedCountry) =>
-      hungerColor(country.code ? dataset.observations[country.code]?.value : null),
-    [dataset.observations],
+  // Frame the country's regions once they arrive.
+  const regionalBboxKey = regionalDataset ? `${regionalDataset.countryCode}:${regionalDataset.analysisDate}` : null;
+  useEffect(() => {
+    if (!regionalDataset?.bbox || !regionalBboxKey) return;
+    globeHandleRef.current?.focusPoint({
+      ...bboxCenter(regionalDataset.bbox),
+      altitude: altitudeForBbox(regionalDataset.bbox),
+    });
+    // regionalBboxKey identifies the dataset; the bbox itself is derived from it.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [regionalBboxKey]);
+
+  const countryPolygons = useMemo<GlobePolygon[]>(
+    () =>
+      geometry.status === "ready"
+        ? geometry.countries.map((country) => ({ kind: "country", country }))
+        : [],
+    [geometry],
+  );
+
+  const polygons = useMemo<GlobePolygon[]>(() => {
+    if (!regionalDataset || !selectedKey) return countryPolygons;
+    const others = countryPolygons.filter(
+      (polygon) => polygon.kind === "country" && countryKey(polygon.country) !== selectedKey,
+    );
+    const regions: GlobePolygon[] = regionalDataset.features.map((feature) => ({
+      kind: "region",
+      feature,
+    }));
+    return [...others, ...regions];
+  }, [countryPolygons, regionalDataset, selectedKey]);
+
+  const colorForPolygon = useCallback(
+    (polygon: GlobePolygon) => {
+      if (polygon.kind === "region") return ipcPhaseColor(polygon.feature.properties.phase);
+      if (regionalDataset) return REGION_MODE_COUNTRY_COLOR;
+      const code = polygon.country.code;
+      return hungerColor(code ? dataset.observations[code]?.value : null);
+    },
+    [dataset.observations, regionalDataset],
   );
 
   const periodLabel = useMemo(() => mostCommonPeriod(dataset), [dataset]);
@@ -123,6 +195,19 @@ export function HungerGlobeExplorer({ dataset }: HungerGlobeExplorerProps) {
     setPointer({ x: event.clientX - rect.left, y: event.clientY - rect.top });
   };
 
+  const handleSelectPolygon = useCallback(
+    (polygon: GlobePolygon) => {
+      if (polygon.kind === "country") {
+        select(polygon.country);
+        return;
+      }
+      if (selectedKey) {
+        setRegionSelection({ countryKey: selectedKey, fnid: polygon.feature.properties.fnid });
+      }
+    },
+    [select, selectedKey],
+  );
+
   const handlePickCountry = useCallback(
     (country: ResolvedCountry) => {
       select(country);
@@ -131,21 +216,63 @@ export function HungerGlobeExplorer({ dataset }: HungerGlobeExplorerProps) {
     [select],
   );
 
+  const enterRegionMode = useCallback(() => {
+    if (selectedKey) setRegionModeCountry(selectedKey);
+  }, [selectedKey]);
+
+  const exitRegionMode = useCallback(() => {
+    setRegionModeCountry(null);
+    setRegionSelection(null);
+    if (selected) globeHandleRef.current?.focusCountry(selected);
+  }, [selected]);
+
+  const clearRegionSelection = useCallback(() => setRegionSelection(null), []);
+
+  const handleCloseSidebar = useCallback(() => {
+    setRegionModeCountry(null);
+    setRegionSelection(null);
+    clearSelection();
+  }, [clearSelection]);
+
+  const selectedRegion: RegionClassification | null =
+    regionalDataset && regionSelection && regionSelection.countryKey === selectedKey
+      ? (regionalDataset.features.find((f) => f.properties.fnid === regionSelection.fnid)?.properties ?? null)
+      : null;
+
   const selectedObservation =
     selected?.code !== null && selected?.code !== undefined
       ? dataset.observations[selected.code]
       : undefined;
+
+  const hoveredKey = hoveredPolygon ? polygonKey(hoveredPolygon) : null;
+  const activeSelectionKey = selectedRegion
+    ? `region:${selectedRegion.fnid}`
+    : selected && !regionalDataset
+      ? `country:${countryKey(selected)}`
+      : null;
+
+  const hoveredCountry = hoveredPolygon?.kind === "country" ? hoveredPolygon.country : null;
+  const hoveredRegion = hoveredPolygon?.kind === "region" ? hoveredPolygon.feature.properties : null;
   const hoveredObservation =
-    hovered?.code !== null && hovered?.code !== undefined
-      ? dataset.observations[hovered.code]
+    hoveredCountry?.code !== null && hoveredCountry?.code !== undefined
+      ? dataset.observations[hoveredCountry.code]
       : undefined;
+
+  const ngoNote =
+    regionalDataset && selected ? (
+      <p className="text-[11px] text-slate-400">
+        NGO coverage is recorded at country level only, so this list shows organisations operating
+        anywhere in {selected.name}
+        {selectedRegion ? `; none are specifically linked to ${selectedRegion.name}` : ""}.
+      </p>
+    ) : null;
 
   return (
     <div className="relative flex min-h-0 flex-1 flex-col lg:flex-row">
       <div
         ref={containerRef}
         onPointerMove={handlePointerMove}
-        onPointerLeave={() => hover(null)}
+        onPointerLeave={() => setHoveredPolygon(null)}
         className="relative min-h-[60vh] flex-1 overflow-hidden lg:min-h-0"
         style={{
           background:
@@ -155,12 +282,13 @@ export function HungerGlobeExplorer({ dataset }: HungerGlobeExplorerProps) {
         {geometry.status === "ready" && size.width > 0 && size.height > 0 ? (
           <WorldHungerGlobe
             handleRef={globeHandleRef}
-            countries={geometry.countries}
-            colorForCountry={colorForCountry}
-            hovered={hovered}
-            selected={selected}
-            onHover={hover}
-            onSelect={select}
+            polygons={polygons}
+            colorForPolygon={colorForPolygon}
+            hoveredKey={hoveredKey}
+            selectedKey={activeSelectionKey}
+            interactionActive={selected !== null}
+            onHover={setHoveredPolygon}
+            onSelect={handleSelectPolygon}
             width={size.width}
             height={size.height}
           />
@@ -175,15 +303,21 @@ export function HungerGlobeExplorer({ dataset }: HungerGlobeExplorerProps) {
             message={`Country boundaries could not be loaded (${geometry.message}). Reload the page to try again.`}
           />
         ) : null}
+        {regionMode && regionalState.status === "loading" ? (
+          <GlobeStatus message={`Loading FEWS NET regions for ${selected?.name ?? "this country"}…`} />
+        ) : null}
 
-        {hovered && geometry.status === "ready" ? (
+        {hoveredCountry && geometry.status === "ready" ? (
           <CountryTooltip
-            country={hovered}
+            country={hoveredCountry}
             observation={hoveredObservation}
             indicator={dataset.indicator}
             position={pointer}
             bounds={size}
           />
+        ) : null}
+        {hoveredRegion ? (
+          <RegionTooltip region={hoveredRegion} position={pointer} bounds={size} />
         ) : null}
 
         {geometry.status === "ready" ? (
@@ -198,11 +332,15 @@ export function HungerGlobeExplorer({ dataset }: HungerGlobeExplorerProps) {
           />
         ) : null}
 
-        <HungerLegend
-          dataset={dataset}
-          periodLabel={periodLabel}
-          className="absolute bottom-4 left-4 z-10 hidden sm:block"
-        />
+        {regionalDataset ? (
+          <IpcLegend dataset={regionalDataset} className="absolute bottom-4 left-4 z-10 hidden sm:block" />
+        ) : (
+          <HungerLegend
+            dataset={dataset}
+            periodLabel={periodLabel}
+            className="absolute bottom-4 left-4 z-10 hidden sm:block"
+          />
+        )}
       </div>
 
       {selected ? (
@@ -211,7 +349,22 @@ export function HungerGlobeExplorer({ dataset }: HungerGlobeExplorerProps) {
             country={selected}
             observation={selectedObservation}
             dataset={dataset}
-            onClose={clearSelection}
+            onClose={handleCloseSidebar}
+            regionalSection={
+              selected.code ? (
+                <RegionalExplorerPanel
+                  countryName={selected.name}
+                  regionMode={regionMode}
+                  state={regionalState}
+                  selectedRegion={selectedRegion}
+                  onEnterRegionMode={enterRegionMode}
+                  onExitRegionMode={exitRegionMode}
+                  onClearRegion={clearRegionSelection}
+                  onRetry={retryRegional}
+                />
+              ) : undefined
+            }
+            ngoNote={ngoNote}
           >
             {selected.code ? (
               <NgoList countryCode={selected.code} countryName={selected.name} />
@@ -222,7 +375,11 @@ export function HungerGlobeExplorer({ dataset }: HungerGlobeExplorerProps) {
 
       <details className="border-t border-white/10 bg-slate-950 p-3 text-xs text-slate-300 sm:hidden">
         <summary className="cursor-pointer font-medium text-white">Legend</summary>
-        <HungerLegend dataset={dataset} periodLabel={periodLabel} className="mt-2" />
+        {regionalDataset ? (
+          <IpcLegend dataset={regionalDataset} className="mt-2" />
+        ) : (
+          <HungerLegend dataset={dataset} periodLabel={periodLabel} className="mt-2" />
+        )}
       </details>
     </div>
   );
