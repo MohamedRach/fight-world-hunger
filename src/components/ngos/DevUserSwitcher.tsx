@@ -12,11 +12,16 @@ import { useState } from "react";
 export function DevUserSwitcher({ currentUserId }: { currentUserId: string | null }) {
   const router = useRouter();
   const [userId, setUserId] = useState("");
+  const [error, setError] = useState<string | null>(null);
 
   function signIn(event: React.FormEvent) {
     event.preventDefault();
     const trimmed = userId.trim();
-    if (!trimmed) return;
+    if (!trimmed) {
+      setError("Enter a user ID first, e.g. user-1.");
+      return;
+    }
+    setError(null);
     document.cookie = `dev-user-id=${encodeURIComponent(trimmed)}; path=/; max-age=86400; samesite=lax`;
     router.refresh();
   }
@@ -59,6 +64,8 @@ export function DevUserSwitcher({ currentUserId }: { currentUserId: string | nul
             value={userId}
             onChange={(event) => setUserId(event.target.value)}
             placeholder="e.g. user-1"
+            aria-invalid={error ? true : undefined}
+            aria-describedby={error ? "dev-user-id-error" : undefined}
             className="rounded-lg border border-black/15 bg-transparent px-3 py-1.5 outline-none focus:border-emerald-600 dark:border-white/20"
           />
           <button
@@ -67,6 +74,11 @@ export function DevUserSwitcher({ currentUserId }: { currentUserId: string | nul
           >
             Sign in
           </button>
+          {error && (
+            <p id="dev-user-id-error" role="alert" className="w-full text-red-600 dark:text-red-400">
+              {error}
+            </p>
+          )}
         </form>
       )}
     </div>
