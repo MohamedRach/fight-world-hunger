@@ -550,6 +550,9 @@ export function NgoOnboardingWizard({
           <div className="rounded-xl border border-black/10 p-5 dark:border-white/15">
             <h2 className="font-semibold">What you&apos;ll need</h2>
             <ul className="mt-3 list-disc space-y-1 pl-5 text-sm">
+              {requireAccount && (
+                <li>Your name and an email for your NGO account</li>
+              )}
               <li>Your NGO&apos;s name, a short description, and mission statement</li>
               <li>Your headquarters country and countries of operation</li>
               <li>Your primary cause</li>
@@ -584,8 +587,8 @@ export function NgoOnboardingWizard({
           <button type="button" onClick={start} className={primaryButton}>
             Start onboarding
           </button>
-          <Link href="/dashboard" className={secondaryButton}>
-            Back to dashboard
+          <Link href={requireAccount ? "/map" : "/dashboard"} className={secondaryButton}>
+            {requireAccount ? "Back to the map" : "Back to dashboard"}
           </Link>
         </div>
       </section>
