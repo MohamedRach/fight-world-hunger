@@ -2,8 +2,12 @@ import type { ProfileCompleteness } from "@/features/ngos/service";
 
 export function NgoCompletenessCard({
   completeness,
+  missingIntro = "Add the following to help donors trust your organization:",
+  completeMessage = "Your profile is complete. Great job!",
 }: {
   completeness: ProfileCompleteness;
+  missingIntro?: string;
+  completeMessage?: string;
 }) {
   const { percentage, missing } = completeness;
   return (
@@ -27,9 +31,7 @@ export function NgoCompletenessCard({
       </div>
       {missing.length > 0 ? (
         <div className="mt-3">
-          <p className="text-sm opacity-70">
-            Add the following to help donors trust your organization:
-          </p>
+          <p className="text-sm opacity-70">{missingIntro}</p>
           <ul className="mt-2 list-disc space-y-0.5 pl-5 text-sm">
             {missing.map((label) => (
               <li key={label}>{label}</li>
@@ -38,7 +40,7 @@ export function NgoCompletenessCard({
         </div>
       ) : (
         <p className="mt-3 text-sm text-emerald-700 dark:text-emerald-300">
-          Your profile is complete. Great job!
+          {completeMessage}
         </p>
       )}
     </div>

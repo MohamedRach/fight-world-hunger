@@ -95,3 +95,48 @@ Update an NGO profile. Partial update; only provided fields change.
   - `403 FORBIDDEN` (no membership for this NGO)
   - `404 NOT_FOUND`
   - `409 DUPLICATE_NGO` (name/registrationId collision)
+
+---
+
+## Individual profile (Developer 3)
+
+The signed-in user's own profile. **Private:** there is no endpoint to read
+another person's profile, and NGOs cannot browse individuals.
+
+```ts
+type IndividualProfileView = {
+  id: string;
+  fullName: string;
+  email: string;
+  countryCode: string | null;          // ISO 3166-1 alpha-3
+  avatarUrl: string | null;
+  bio: string | null;                  // <= 500 chars
+  preferredCauses: NgoCause[];
+  preferredCountryCodes: string[];     // alpha-3, max 50
+  donateAnonymously: boolean;
+  contactConsent: boolean;
+};
+```
+
+### GET `/api/me/individual-profile`
+- **Auth:** required. **200** `{ data: IndividualProfileView }`
+- **Errors:** `401 UNAUTHENTICATED`, `404 NOT_FOUND` (no profile yet)
+
+### POST `/api/me/individual-profile`
+- **Auth:** required. One profile per account.
+- **Body:** `fullName`, `email` (required), optional fields above, and
+  `acceptPrivacyPolicy: true` (required; stored as an acceptance timestamp).
+- **201** `{ data: IndividualProfileView }`
+- **Errors:** `400 VALIDATION_ERROR`, `401 UNAUTHENTICATED`, `409 PROFILE_EXISTS`
+
+### PATCH `/api/me/individual-profile`
+- **Auth:** required. Partial update; omitted fields are unchanged.
+- **200** `{ data: IndividualProfileView }`
+- **Errors:** `400 VALIDATION_ERROR`, `401 UNAUTHENTICATED`, `404 NOT_FOUND`
+
+## Sign-in (temporary)
+
+`/sign-in?as=individual|ngo[&next=/path]` is a development-only sign-in
+(email, no password) that sets the session stub's cookie. One account can
+hold an individual profile **and** NGO memberships. `next` accepts same-site
+paths only. To be replaced by Developer 1's authentication.

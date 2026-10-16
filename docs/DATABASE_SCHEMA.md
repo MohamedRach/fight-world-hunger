@@ -89,3 +89,27 @@ Unique constraint on (`ngoId`, `countryCode`). Index on `countryCode` for
 - `NGO.slug` (unique), `NGO.name` (unique), `NGO.registrationId` (unique, nullable)
 - `NGOMembership(userId, ngoId)` (unique), `NGOMembership.ngoId`
 - `NGOCountry(ngoId, countryCode)` (unique), `NGOCountry.countryCode`
+
+## Individual profile (proposed by Developer 3)
+
+### IndividualProfile
+
+One per `User`. Private to its owner.
+
+| Field | Type | Constraints |
+|---|---|---|
+| `id` | string (uuid) | PK |
+| `userId` | string | FK -> User, **unique** |
+| `fullName` | string | required, 2-120 chars |
+| `email` | string | required, valid email |
+| `countryCode` | string \| null | ISO 3166-1 alpha-3 |
+| `avatarUrl` | string \| null | valid URL |
+| `bio` | string \| null | <= 500 chars |
+| `preferredCauses` | enum `NgoCause`[] | may be empty |
+| `preferredCountryCodes` | string[] | alpha-3, max 50 |
+| `donateAnonymously` | boolean | default false (to be honoured by donations, Developer 4) |
+| `contactConsent` | boolean | default false |
+| `privacyAcceptedAt` | timestamp | required |
+| `createdAt` / `updatedAt` | timestamp | required |
+
+A user may have both an `IndividualProfile` and `NGOMembership` rows.

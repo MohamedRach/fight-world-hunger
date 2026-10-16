@@ -185,6 +185,65 @@ export function SelectInput({
   );
 }
 
+export function CheckboxField({
+  id,
+  label,
+  description,
+  required,
+  error,
+  checked,
+  onChange,
+}: {
+  id: string;
+  label: ReactNode;
+  description?: string;
+  required?: boolean;
+  error?: string;
+  checked: boolean;
+  onChange: (checked: boolean) => void;
+}) {
+  return (
+    <div className="flex flex-col gap-1">
+      <label
+        htmlFor={id}
+        className="flex cursor-pointer items-start gap-3 rounded-lg border border-black/10 p-3 hover:bg-black/5 dark:border-white/15 dark:hover:bg-white/5"
+      >
+        <input
+          id={id}
+          type="checkbox"
+          checked={checked}
+          onChange={(event) => onChange(event.target.checked)}
+          required={required}
+          aria-invalid={error ? true : undefined}
+          aria-describedby={error ? `${id}-error` : description ? `${id}-hint` : undefined}
+          className="mt-0.5 h-4 w-4 shrink-0 accent-emerald-600"
+        />
+        <span>
+          <span className="text-sm font-medium">
+            {label}
+            {required && (
+              <span className="text-red-600 dark:text-red-400">
+                <span aria-hidden="true"> *</span>
+                <span className="sr-only"> (required)</span>
+              </span>
+            )}
+          </span>
+          {description && (
+            <span id={`${id}-hint`} className="mt-0.5 block text-xs opacity-70">
+              {description}
+            </span>
+          )}
+        </span>
+      </label>
+      {error && (
+        <p id={`${id}-error`} role="alert" className="text-xs text-red-600 dark:text-red-400">
+          {error}
+        </p>
+      )}
+    </div>
+  );
+}
+
 export function CheckboxGroup({
   id,
   label,
