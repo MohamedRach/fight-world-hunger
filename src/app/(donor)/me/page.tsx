@@ -59,6 +59,21 @@ export default async function MyProfilePage() {
         </div>
       </div>
 
+      <nav aria-label="Donor sections" className="mb-6 flex flex-wrap gap-2">
+        <Link
+          href="/me/donations"
+          className="rounded-full border border-black/15 px-4 py-1.5 text-sm font-medium hover:bg-black/5 dark:border-white/20 dark:hover:bg-white/10"
+        >
+          My donations
+        </Link>
+        <Link
+          href="/me/payment-methods"
+          className="rounded-full border border-black/15 px-4 py-1.5 text-sm font-medium hover:bg-black/5 dark:border-white/20 dark:hover:bg-white/10"
+        >
+          My payment methods
+        </Link>
+      </nav>
+
       {profile ? (
         <IndividualProfileOverview
           profile={profile}

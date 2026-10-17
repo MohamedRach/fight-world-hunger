@@ -1,0 +1,24 @@
+[
+  {
+    "key": "alex-visa",
+    "individualKey": "alex-demo",
+    "brand": "VISA",
+    "last4": "4242",
+    "holderName": "ALEX DEMO",
+    "expMonth": 11,
+    "expYear": 2031,
+    "label": "Personal card (demo)",
+    "isDefault": true
+  },
+  {
+    "key": "alex-mastercard",
+    "individualKey": "alex-demo",
+    "brand": "MASTERCARD",
+    "last4": "4444",
+    "holderName": "ALEX DEMO",
+    "expMonth": 4,
+    "expYear": 2030,
+    "label": "Backup card (demo)",
+    "isDefault": false
+  }
+]

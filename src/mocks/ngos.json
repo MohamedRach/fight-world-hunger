@@ -1,0 +1,52 @@
+[
+  {
+    "key": "sahel-food-collective",
+    "account": {
+      "email": "demo.ngo@example.org",
+      "representativeName": "Amina Diallo (demo)"
+    },
+    "profile": {
+      "name": "Sahel Food Collective (demo)",
+      "shortDescription": "Fictional demo organization running school meal and drought response programmes across the Horn of Africa.",
+      "mission": "A demonstration NGO used to showcase the donation workflows of this development build. It is not a real organization and accepts no real money.",
+      "activitiesDescription": "Demo record: school feeding, seed distribution and emergency food parcels.",
+      "targetBeneficiaries": "Demo record: smallholder farming households and school-age children.",
+      "yearFounded": 2011,
+      "website": "https://example.org/sahel-food-collective",
+      "contactEmail": "demo.ngo@example.org",
+      "primaryCause": "HUNGER_RELIEF",
+      "otherCauses": ["CLEAN_WATER", "DISASTER_RELIEF"],
+      "hqCountryCode": "KEN",
+      "hqCity": "Nairobi",
+      "operatingCountryCodes": ["KEN", "SOM", "ETH"],
+      "projectsSummary": "Demo record: three active programmes used to populate this development environment.",
+      "impactSummary": "Demo record: figures shown here are illustrative only.",
+      "keyAchievements": ["Demo achievement: illustrative record only"]
+    }
+  },
+  {
+    "key": "caribbean-nutrition-alliance",
+    "account": {
+      "email": "demo.ngo2@example.org",
+      "representativeName": "Marc Etienne (demo)"
+    },
+    "profile": {
+      "name": "Caribbean Nutrition Alliance (demo)",
+      "shortDescription": "Fictional demo organization supporting maternal and child nutrition in the Caribbean.",
+      "mission": "A demonstration NGO used to showcase the donation workflows of this development build. It is not a real organization and accepts no real money.",
+      "activitiesDescription": "Demo record: nutrition clinics and food vouchers.",
+      "targetBeneficiaries": "Demo record: mothers and children under five.",
+      "yearFounded": 2016,
+      "website": "https://example.org/caribbean-nutrition-alliance",
+      "contactEmail": "demo.ngo2@example.org",
+      "primaryCause": "HUNGER_RELIEF",
+      "otherCauses": ["HEALTHCARE"],
+      "hqCountryCode": "HTI",
+      "hqCity": "Port-au-Prince",
+      "operatingCountryCodes": ["HTI", "DOM"],
+      "projectsSummary": "Demo record: illustrative programme list.",
+      "impactSummary": "Demo record: figures shown here are illustrative only.",
+      "keyAchievements": ["Demo achievement: illustrative record only"]
+    }
+  }
+]

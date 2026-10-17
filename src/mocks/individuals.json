@@ -1,0 +1,16 @@
+[
+  {
+    "key": "alex-demo",
+    "profile": {
+      "fullName": "Alex Demo",
+      "email": "demo.donor@example.org",
+      "countryCode": "FRA",
+      "bio": "Fictional donor account used to demonstrate the donation workflows in this development build.",
+      "preferredCauses": ["HUNGER_RELIEF", "CLEAN_WATER"],
+      "preferredCountryCodes": ["KEN", "HTI"],
+      "donateAnonymously": false,
+      "contactConsent": false,
+      "acceptPrivacyPolicy": true
+    }
+  }
+]

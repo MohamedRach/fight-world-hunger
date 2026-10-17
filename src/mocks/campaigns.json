@@ -1,0 +1,54 @@
+[
+  {
+    "key": "school-meals-horn-of-africa",
+    "ngoKey": "sahel-food-collective",
+    "title": "School meals across the Horn of Africa (demo)",
+    "summary": "Demo campaign: a daily hot meal for children in drought-affected schools.",
+    "description": "This is fictional demo data used to exercise the donation workflows of this development build. No real programme, beneficiary or payment is involved. The campaign serves several countries at once, which is how a single campaign record appears in each country on the map.",
+    "countryCodes": ["KEN", "SOM", "ETH"],
+    "goalAmountMinor": 500000,
+    "currency": "USD",
+    "startDateDaysFromNow": -45,
+    "endDateDaysFromNow": 120,
+    "status": "ACTIVE"
+  },
+  {
+    "key": "drought-seed-recovery-kenya",
+    "ngoKey": "sahel-food-collective",
+    "title": "Drought seed recovery, northern Kenya (demo)",
+    "summary": "Demo campaign: drought-tolerant seed for smallholder farming households.",
+    "description": "Fictional demo data for this development build. Used to show a second campaign owned by the same organization, with a different currency and a nearer deadline.",
+    "countryCodes": ["KEN"],
+    "goalAmountMinor": 300000,
+    "currency": "EUR",
+    "startDateDaysFromNow": -10,
+    "endDateDaysFromNow": 60,
+    "status": "ACTIVE"
+  },
+  {
+    "key": "maternal-nutrition-haiti",
+    "ngoKey": "caribbean-nutrition-alliance",
+    "title": "Maternal nutrition support in Haiti (demo)",
+    "summary": "Demo campaign: nutrition support for mothers and children under five.",
+    "description": "Fictional demo data for this development build. Used to show campaigns from a second organization in a different region.",
+    "countryCodes": ["HTI", "DOM"],
+    "goalAmountMinor": 400000,
+    "currency": "USD",
+    "startDateDaysFromNow": -120,
+    "endDateDaysFromNow": 30,
+    "status": "ACTIVE"
+  },
+  {
+    "key": "water-points-somalia",
+    "ngoKey": "sahel-food-collective",
+    "title": "Water points for displaced families, Somalia (demo)",
+    "summary": "Demo campaign: this one is paused, to show a non-donatable state.",
+    "description": "Fictional demo data for this development build. This campaign is PAUSED so the country list and campaign cards can demonstrate how a campaign that is not accepting donations is presented.",
+    "countryCodes": ["SOM"],
+    "goalAmountMinor": 200000,
+    "currency": "GBP",
+    "startDateDaysFromNow": -200,
+    "endDateDaysFromNow": null,
+    "status": "PAUSED"
+  }
+]

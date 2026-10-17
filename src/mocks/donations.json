@@ -1,0 +1,90 @@
+[
+  {
+    "key": "alex-school-meals-confirmed",
+    "individualKey": "alex-demo",
+    "campaignKey": "school-meals-horn-of-africa",
+    "paymentMethodKey": "alex-visa",
+    "amountMinor": 7500,
+    "isAnonymous": false,
+    "message": "Demo donation — no money moved.",
+    "createdDaysAgo": 12,
+    "statusFlow": [
+      { "to": "PENDING", "actorRole": "DONOR", "daysAgo": 12, "note": "Simulated pledge created." },
+      { "to": "CONFIRMED", "actorRole": "NGO", "daysAgo": 11, "note": "Demo: organization acknowledged the pledge." },
+      { "to": "IN_PROGRESS", "actorRole": "NGO", "daysAgo": 5, "note": "Demo: supported work under way." }
+    ]
+  },
+  {
+    "key": "alex-haiti-pending",
+    "individualKey": "alex-demo",
+    "campaignKey": "maternal-nutrition-haiti",
+    "paymentMethodKey": "alex-mastercard",
+    "amountMinor": 2500,
+    "isAnonymous": true,
+    "message": null,
+    "createdDaysAgo": 2,
+    "statusFlow": [
+      { "to": "PENDING", "actorRole": "DONOR", "daysAgo": 2, "note": "Simulated pledge created." }
+    ]
+  },
+  {
+    "key": "alex-school-meals-confirmed-2",
+    "individualKey": "alex-demo",
+    "campaignKey": "school-meals-horn-of-africa",
+    "paymentMethodKey": "alex-visa",
+    "amountMinor": 120000,
+    "isAnonymous": false,
+    "message": null,
+    "createdDaysAgo": 20,
+    "statusFlow": [
+      { "to": "PENDING", "actorRole": "DONOR", "daysAgo": 20, "note": "Simulated pledge created." },
+      { "to": "CONFIRMED", "actorRole": "NGO", "daysAgo": 19, "note": "Demo: organization acknowledged the pledge." }
+    ]
+  },
+  {
+    "key": "alex-haiti-completed",
+    "individualKey": "alex-demo",
+    "campaignKey": "maternal-nutrition-haiti",
+    "paymentMethodKey": "alex-visa",
+    "amountMinor": 90000,
+    "isAnonymous": false,
+    "message": "Demo donation — no money moved.",
+    "createdDaysAgo": 30,
+    "statusFlow": [
+      { "to": "PENDING", "actorRole": "DONOR", "daysAgo": 30, "note": "Simulated pledge created." },
+      { "to": "CONFIRMED", "actorRole": "NGO", "daysAgo": 28, "note": "Demo: organization acknowledged the pledge." },
+      { "to": "IN_PROGRESS", "actorRole": "NGO", "daysAgo": 20, "note": "Demo: nutrition clinics running." },
+      { "to": "COMPLETED", "actorRole": "NGO", "daysAgo": 4, "note": "Demo: programme cycle finished." }
+    ]
+  },
+  {
+    "key": "alex-rejected-example",
+    "individualKey": "alex-demo",
+    "campaignKey": "drought-seed-recovery-kenya",
+    "paymentMethodKey": "alex-mastercard",
+    "amountMinor": 1500,
+    "isAnonymous": false,
+    "message": null,
+    "createdDaysAgo": 15,
+    "statusFlow": [
+      { "to": "PENDING", "actorRole": "DONOR", "daysAgo": 15, "note": "Simulated pledge created." },
+      { "to": "REJECTED", "actorRole": "NGO", "daysAgo": 14, "note": "Demo: shows a rejected pledge never counts towards the total." }
+    ]
+  },
+  {
+    "key": "alex-seed-completed",
+    "individualKey": "alex-demo",
+    "campaignKey": "drought-seed-recovery-kenya",
+    "paymentMethodKey": "alex-visa",
+    "amountMinor": 45000,
+    "isAnonymous": false,
+    "message": "Demo donation — no money moved.",
+    "createdDaysAgo": 9,
+    "statusFlow": [
+      { "to": "PENDING", "actorRole": "DONOR", "daysAgo": 9, "note": "Simulated pledge created." },
+      { "to": "CONFIRMED", "actorRole": "NGO", "daysAgo": 8, "note": "Demo: organization acknowledged the pledge." },
+      { "to": "IN_PROGRESS", "actorRole": "NGO", "daysAgo": 6, "note": "Demo: seed distribution started." },
+      { "to": "COMPLETED", "actorRole": "NGO", "daysAgo": 1, "note": "Demo: distribution finished." }
+    ]
+  }
+]

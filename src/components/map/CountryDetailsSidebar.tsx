@@ -18,6 +18,8 @@ interface CountryDetailsSidebarProps {
   regionalSection?: ReactNode;
   /** Optional note shown under the NGO heading, e.g. a coverage limitation. */
   ngoNote?: ReactNode;
+  /** Donation campaigns serving this country. */
+  campaignsSection?: ReactNode;
 }
 
 function CountryFlag({ iso2, name }: { iso2: string; name: string }) {
@@ -46,6 +48,7 @@ export function CountryDetailsSidebar({
   children,
   regionalSection,
   ngoNote,
+  campaignsSection,
 }: CountryDetailsSidebarProps) {
   const headingRef = useRef<HTMLHeadingElement>(null);
   const severity = classifyHungerValue(observation?.value);
@@ -172,6 +175,23 @@ export function CountryDetailsSidebar({
               Regional food security (FEWS NET)
             </h3>
             <div className="mt-2">{regionalSection}</div>
+          </section>
+        ) : null}
+
+        {campaignsSection ? (
+          <section aria-labelledby="country-campaigns-title">
+            <h3 id="country-campaigns-title" className="text-sm font-semibold text-white">
+              Campaigns in {country.name}
+            </h3>
+            <div className="mt-2">
+              {country.code ? (
+                campaignsSection
+              ) : (
+                <p className="rounded-lg border border-dashed border-white/15 p-3 text-xs text-slate-400">
+                  Campaign lookup is unavailable because this territory has no ISO country code.
+                </p>
+              )}
+            </div>
           </section>
         ) : null}
 
