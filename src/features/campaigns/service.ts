@@ -201,6 +201,7 @@ export async function createCampaign(
     summary: data.summary,
     description: data.description,
     countryCodes: data.countryCodes,
+    issueTags: data.issueTags,
     goalAmountMinor: data.goalAmountMinor,
     currency: data.currency,
     startDate: data.startDate ?? null,

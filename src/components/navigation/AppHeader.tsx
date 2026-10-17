@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { connection } from "next/server";
 import { Suspense } from "react";
 
 import { getSessionUser } from "@/features/ngos/session";
@@ -12,6 +13,10 @@ import { AppNavMenu } from "./AppNavMenu";
  * time.
  */
 async function SessionMenu() {
+  // Marks this subtree as request-time. Without it, prerendering a static
+  // page such as /map would execute the session lookup (which reads the
+  // clock) and fail the build.
+  await connection();
   const user = await getSessionUser();
   return <AppNavMenu user={user} />;
 }

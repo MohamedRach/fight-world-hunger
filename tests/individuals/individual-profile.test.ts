@@ -40,7 +40,7 @@ describe("individual profile validation", () => {
     const result = individualCreateSchema.safeParse(validInput);
     expect(result.success).toBe(true);
     if (result.success) {
-      expect(result.data.preferredCauses).toEqual([]);
+      expect(result.data.hungerInterests).toEqual([]);
       expect(result.data.donateAnonymously).toBe(false);
     }
   });
@@ -107,12 +107,12 @@ describe("individual profile service", () => {
   it("updates only the provided fields", async () => {
     await createMyIndividualProfile(ALICE, {
       ...validInput,
-      preferredCauses: ["HUNGER_RELIEF"],
+      hungerInterests: ["child_malnutrition"],
       contactConsent: true,
     });
     const updated = await updateMyIndividualProfile(ALICE, { bio: "I give every month." });
     expect(updated.bio).toBe("I give every month.");
-    expect(updated.preferredCauses).toEqual(["HUNGER_RELIEF"]);
+    expect(updated.hungerInterests).toEqual(["child_malnutrition"]);
     expect(updated.contactConsent).toBe(true);
   });
 

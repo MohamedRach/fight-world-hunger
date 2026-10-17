@@ -4,11 +4,17 @@ import Link from "next/link";
 
 import type { CampaignSummary } from "@/features/campaigns/types";
 import { CAMPAIGN_STATUS_LABELS } from "@/features/campaigns/types";
+import { hungerIssueShortLabel } from "@/features/hunger-issues/catalog";
+import type { CampaignRecommendation } from "@/features/recommendations/types";
 import { CampaignProgress } from "./CampaignProgress";
 
 interface CampaignCardProps {
   campaign: CampaignSummary;
   onDonate: (campaign: CampaignSummary) => void;
+  /** Shown with a "Recommended for you" treatment. */
+  recommendation?: CampaignRecommendation;
+  /** True when the suggestion is not personalised to this viewer. */
+  genericSuggestion?: boolean;
 }
 
 const STATUS_BADGE: Record<string, string> = {
@@ -27,15 +33,32 @@ function formatEndDate(iso: string | null): string | null {
 }
 
 /** Campaign card used in the country sidebar on the map (dark surface). */
-export function CampaignCard({ campaign, onDonate }: CampaignCardProps) {
+export function CampaignCard({
+  campaign,
+  onDonate,
+  recommendation,
+  genericSuggestion = false,
+}: CampaignCardProps) {
   const endsOn = formatEndDate(campaign.endDate);
   const canDonate = campaign.status === "ACTIVE";
 
   return (
     <article
       aria-labelledby={`campaign-${campaign.id}-title`}
-      className="rounded-xl border border-white/10 bg-white/5 p-3 text-sm text-slate-200"
+      className={`rounded-xl border p-3 text-sm text-slate-200 ${
+        recommendation
+          ? "border-emerald-400/40 bg-emerald-500/[0.07]"
+          : "border-white/10 bg-white/5"
+      }`}
     >
+      {recommendation ? (
+        <p className="mb-2 flex flex-wrap items-center gap-2">
+          <span className="rounded-full bg-emerald-500/20 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-emerald-200">
+            {genericSuggestion ? "Suggested" : "Recommended for you"}
+          </span>
+          <span className="text-[11px] text-emerald-100/90">{recommendation.explanation}</span>
+        </p>
+      ) : null}
       <div className="flex items-start justify-between gap-2">
         <h4 id={`campaign-${campaign.id}-title`} className="font-semibold text-white">
           {campaign.title}
@@ -65,6 +88,26 @@ export function CampaignCard({ campaign, onDonate }: CampaignCardProps) {
       </p>
 
       <p className="mt-2 line-clamp-3 text-xs text-slate-300">{campaign.summary}</p>
+
+      {campaign.issueTags.length > 0 ? (
+        <ul aria-label="Hunger issues addressed" className="mt-2 flex flex-wrap gap-1">
+          {campaign.issueTags.map((tag) => {
+            const matched = recommendation?.matchedIssueTags.includes(tag) ?? false;
+            return (
+              <li
+                key={tag}
+                className={`rounded-full px-2 py-0.5 text-[10px] ${
+                  matched
+                    ? "bg-emerald-500/25 font-medium text-emerald-100"
+                    : "bg-white/10 text-slate-300"
+                }`}
+              >
+                {hungerIssueShortLabel(tag)}
+              </li>
+            );
+          })}
+        </ul>
+      ) : null}
 
       <div className="mt-3">
         <CampaignProgress

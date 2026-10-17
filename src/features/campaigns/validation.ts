@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { isCountryCode } from "@/features/ngos/countries";
+import { HUNGER_ISSUE_IDS } from "@/features/hunger-issues/catalog";
 import { CURRENCIES } from "@/features/money";
 import { CAMPAIGN_STATUSES } from "./types";
 
@@ -40,6 +41,12 @@ const campaignBaseSchema = z.strictObject({
     .array(countryCodeSchema)
     .min(1, "Select at least one country this campaign serves")
     .max(50),
+  // The campaign's own issues — never copied automatically from the NGO.
+  issueTags: z
+    .array(z.enum(HUNGER_ISSUE_IDS, { error: "Select a valid world hunger issue" }))
+    .min(1, "Select at least one world hunger issue this campaign addresses")
+    .max(5, "Keep the campaign focused: select up to 5 issues")
+    .transform((values) => [...new Set(values)]),
   goalAmountMinor: z
     .number({ error: "Enter a fundraising goal" })
     .int("The goal must be a whole amount")

@@ -6,9 +6,45 @@
       "email": "demo.donor@example.org",
       "countryCode": "FRA",
       "bio": "Fictional donor account used to demonstrate the donation workflows in this development build.",
-      "preferredCauses": ["HUNGER_RELIEF", "CLEAN_WATER"],
+      "hungerInterests": ["school_meals", "child_malnutrition", "climate_resilience"],
       "preferredCountryCodes": ["KEN", "HTI"],
       "donateAnonymously": false,
+      "contactConsent": false,
+      "acceptPrivacyPolicy": true
+    }
+  },
+  {
+    "key": "nadia-demo",
+    "profile": {
+      "fullName": "Nadia Demo",
+      "email": "demo.donor2@example.org",
+      "countryCode": "DEU",
+      "bio": "Second fictional donor, with different interests, so recommendations can be compared side by side.",
+      "hungerInterests": [
+        "food_waste_reduction",
+        "sustainable_food_systems",
+        "agricultural_development"
+      ],
+      "preferredCountryCodes": ["IND", "KEN"],
+      "donateAnonymously": false,
+      "contactConsent": false,
+      "acceptPrivacyPolicy": true
+    }
+  },
+  {
+    "key": "tomas-demo",
+    "profile": {
+      "fullName": "Tomas Demo",
+      "email": "demo.donor3@example.org",
+      "countryCode": "ESP",
+      "bio": "Third fictional donor focused on emergency and displacement response.",
+      "hungerInterests": [
+        "refugee_food_assistance",
+        "food_insecurity",
+        "maternal_nutrition"
+      ],
+      "preferredCountryCodes": ["SOM", "SSD"],
+      "donateAnonymously": true,
       "contactConsent": false,
       "acceptPrivacyPolicy": true
     }

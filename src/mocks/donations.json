@@ -86,5 +86,62 @@
       { "to": "IN_PROGRESS", "actorRole": "NGO", "daysAgo": 6, "note": "Demo: seed distribution started." },
       { "to": "COMPLETED", "actorRole": "NGO", "daysAgo": 1, "note": "Demo: distribution finished." }
     ]
+  },
+  {
+    "key": "nadia-cold-storage",
+    "individualKey": "nadia-demo",
+    "campaignKey": "cold-storage-india",
+    "paymentMethodKey": "nadia-visa",
+    "amountMinor": 60000,
+    "isAnonymous": false,
+    "message": "Demo donation — no money moved.",
+    "createdDaysAgo": 18,
+    "statusFlow": [
+      { "to": "PENDING", "actorRole": "DONOR", "daysAgo": 18, "note": "Simulated pledge created." },
+      { "to": "CONFIRMED", "actorRole": "NGO", "daysAgo": 17, "note": "Demo: organization acknowledged the pledge." },
+      { "to": "IN_PROGRESS", "actorRole": "NGO", "daysAgo": 7, "note": "Demo: first unit installed." }
+    ]
+  },
+  {
+    "key": "nadia-surplus-kitchens",
+    "individualKey": "nadia-demo",
+    "campaignKey": "surplus-kitchens-kenya",
+    "paymentMethodKey": "nadia-visa",
+    "amountMinor": 30000,
+    "isAnonymous": false,
+    "message": null,
+    "createdDaysAgo": 6,
+    "statusFlow": [
+      { "to": "PENDING", "actorRole": "DONOR", "daysAgo": 6, "note": "Simulated pledge created." },
+      { "to": "CONFIRMED", "actorRole": "NGO", "daysAgo": 5, "note": "Demo: organization acknowledged the pledge." }
+    ]
+  },
+  {
+    "key": "tomas-displacement-rations",
+    "individualKey": "tomas-demo",
+    "campaignKey": "displacement-rations-somalia",
+    "paymentMethodKey": "tomas-amex",
+    "amountMinor": 150000,
+    "isAnonymous": true,
+    "message": null,
+    "createdDaysAgo": 25,
+    "statusFlow": [
+      { "to": "PENDING", "actorRole": "DONOR", "daysAgo": 25, "note": "Simulated pledge created." },
+      { "to": "CONFIRMED", "actorRole": "NGO", "daysAgo": 24, "note": "Demo: organization acknowledged the pledge." },
+      { "to": "IN_PROGRESS", "actorRole": "NGO", "daysAgo": 10, "note": "Demo: rations distributed at two sites." }
+    ]
+  },
+  {
+    "key": "tomas-mobile-kitchens",
+    "individualKey": "tomas-demo",
+    "campaignKey": "mobile-kitchens-south-sudan",
+    "paymentMethodKey": "tomas-amex",
+    "amountMinor": 40000,
+    "isAnonymous": false,
+    "message": "Demo donation — no money moved.",
+    "createdDaysAgo": 3,
+    "statusFlow": [
+      { "to": "PENDING", "actorRole": "DONOR", "daysAgo": 3, "note": "Simulated pledge created." }
+    ]
   }
 ]

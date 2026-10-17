@@ -7,6 +7,7 @@ import { ApiError, postJson } from "@/features/api-client";
 import type { CampaignSummary } from "@/features/campaigns/types";
 import { CURRENCIES, CURRENCY_LABELS, parseAmountToMinor } from "@/features/money";
 import { COUNTRIES } from "@/features/ngos/countries";
+import { HungerIssuePicker } from "@/components/hunger-issues/HungerIssuePicker";
 
 interface ManageableNgo {
   id: string;
@@ -35,6 +36,7 @@ export function CampaignCreateForm({ ngos }: CampaignCreateFormProps) {
   const [countryCodes, setCountryCodes] = useState<string[]>(
     ngos[0]?.operatingCountryCodes.slice(0, 1) ?? [],
   );
+  const [issueTags, setIssueTags] = useState<string[]>([]);
   const [goal, setGoal] = useState("10000.00");
   const [currency, setCurrency] = useState<string>("USD");
   const [startDate, setStartDate] = useState("");
@@ -68,6 +70,10 @@ export function CampaignCreateForm({ ngos }: CampaignCreateFormProps) {
       setFieldErrors({ goalAmountMinor: "The fundraising goal must be greater than zero" });
       return;
     }
+    if (issueTags.length === 0) {
+      setFieldErrors({ issueTags: "Select at least one world hunger issue this campaign addresses" });
+      return;
+    }
     if (countryCodes.length === 0) {
       setFieldErrors({ countryCodes: "Select at least one country this campaign serves" });
       return;
@@ -81,6 +87,7 @@ export function CampaignCreateForm({ ngos }: CampaignCreateFormProps) {
         summary: summary.trim(),
         description: description.trim(),
         countryCodes,
+        issueTags,
         goalAmountMinor,
         currency,
         startDate: startDate === "" ? null : startDate,
@@ -186,6 +193,17 @@ export function CampaignCreateForm({ ngos }: CampaignCreateFormProps) {
           </span>
         ) : null}
       </label>
+
+      <HungerIssuePicker
+        id="campaign-issue-tags"
+        label="World hunger issues this campaign addresses"
+        hint="What this specific campaign tackles — not everything your organization does. Donors are matched on these."
+        required
+        max={5}
+        value={issueTags}
+        onChange={setIssueTags}
+        error={fieldErrors.issueTags}
+      />
 
       <fieldset>
         <legend className={labelClass}>Countries served</legend>

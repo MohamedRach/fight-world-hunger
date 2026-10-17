@@ -15,7 +15,7 @@ import {
   type IndividualSectionId,
 } from "@/features/individuals/onboarding";
 import type { IndividualProfileView } from "@/features/individuals/types";
-import { NGO_CAUSE_LABELS } from "@/features/ngos/types";
+import { hungerIssueLabel } from "@/features/hunger-issues/catalog";
 import { countryName } from "@/features/ngos/countries";
 import { OnboardingStepper } from "@/components/ngos/onboarding/OnboardingStepper";
 import { IndividualProfileFields } from "./IndividualProfileFields";
@@ -31,7 +31,7 @@ const secondaryButton =
 type ApiError = { code: string; message: string; fieldErrors?: FieldErrors };
 
 function causeLabel(value: string) {
-  return (NGO_CAUSE_LABELS as Record<string, string>)[value] ?? value;
+  return hungerIssueLabel(value);
 }
 
 function ReviewSummary({ draft, onEdit }: { draft: IndividualDraft; onEdit: (index: number) => void }) {
@@ -45,7 +45,7 @@ function ReviewSummary({ draft, onEdit }: { draft: IndividualDraft; onEdit: (ind
       ["Why you give", draft.bio.trim() || none],
     ],
     interests: [
-      ["Causes", draft.preferredCauses.map(causeLabel).join(", ") || none],
+      ["Hunger issues", draft.hungerInterests.map(causeLabel).join(", ") || none],
       ["Countries", draft.preferredCountryCodes.map(countryName).join(", ") || none],
     ],
     privacy: [

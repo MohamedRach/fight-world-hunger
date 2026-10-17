@@ -2,19 +2,17 @@
 
 import { errorFor, type FieldErrors } from "@/features/ngos/onboarding";
 import type { IndividualDraft, IndividualSectionId } from "@/features/individuals/onboarding";
-import { NGO_CAUSES, NGO_CAUSE_LABELS } from "@/features/ngos/types";
 import { COUNTRIES } from "@/features/ngos/countries";
 import {
   CheckboxField,
-  CheckboxGroup,
   CountryMultiSelect,
   SelectInput,
   TextArea,
   TextInput,
 } from "@/components/ngos/onboarding/fields";
+import { HungerIssuePicker } from "@/components/hunger-issues/HungerIssuePicker";
 
 const COUNTRY_OPTIONS = Object.entries(COUNTRIES).sort(([, a], [, b]) => a.localeCompare(b));
-const CAUSE_OPTIONS = NGO_CAUSES.map((cause) => [cause, NGO_CAUSE_LABELS[cause]] as const);
 
 export type DraftUpdater = <K extends keyof IndividualDraft>(
   key: K,
@@ -111,13 +109,14 @@ export function IndividualProfileFields({
     case "interests":
       return (
         <div className="grid gap-5">
-          <CheckboxGroup
-            id={id("preferredCauses")}
-            label="Causes you care about"
-            options={CAUSE_OPTIONS}
-            value={draft.preferredCauses}
-            onChange={(value) => onChange("preferredCauses", value)}
-            error={error("preferredCauses")}
+          <HungerIssuePicker
+            id={id("hungerInterests")}
+            label="World hunger issues you care about"
+            hint="Pick the issues that matter most to you. We use them to recommend campaigns."
+            required
+            value={draft.hungerInterests}
+            onChange={(value) => onChange("hungerInterests", value)}
+            error={error("hungerInterests")}
           />
           <CountryMultiSelect
             id={id("preferredCountryCodes")}

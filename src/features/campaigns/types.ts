@@ -1,3 +1,4 @@
+import type { HungerIssueId } from "@/features/hunger-issues/catalog";
 import type { CurrencyCode } from "@/features/money";
 
 export const CAMPAIGN_STATUSES = [
@@ -65,6 +66,13 @@ export type Campaign = {
   description: string;
   /** ISO 3166-1 alpha-3 codes of the countries served. Never duplicated per country. */
   countryCodes: string[];
+  /**
+   * World hunger issues this campaign actually addresses, from the shared
+   * taxonomy. Deliberately independent of the owning NGO's focus areas: an
+   * organization working on five issues may run a campaign about one.
+   * This is the primary matching signal for recommendations.
+   */
+  issueTags: HungerIssueId[];
   goalAmountMinor: number;
   currency: CurrencyCode;
   startDate: Date | null;
@@ -94,6 +102,7 @@ export type CampaignSummary = {
   title: string;
   summary: string;
   countryCodes: string[];
+  issueTags: HungerIssueId[];
   goalAmountMinor: number;
   raisedAmountMinor: number;
   progressPercent: number;
@@ -113,6 +122,7 @@ export function toCampaignSummary(campaign: CampaignWithProgress): CampaignSumma
     title: campaign.title,
     summary: campaign.summary,
     countryCodes: campaign.countryCodes,
+    issueTags: campaign.issueTags,
     goalAmountMinor: campaign.goalAmountMinor,
     raisedAmountMinor: campaign.raisedAmountMinor,
     progressPercent: campaign.progressPercent,

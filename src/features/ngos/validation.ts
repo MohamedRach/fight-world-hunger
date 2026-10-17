@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { HUNGER_ISSUE_IDS } from "@/features/hunger-issues/catalog";
 import { NGO_CAUSES } from "./types";
 import { isCountryCode } from "./countries";
 
@@ -23,6 +24,16 @@ export const socialLinksSchema = z.strictObject({
 
 const ngoBaseSchema = z.strictObject({
   name: z.string().trim().min(2, "Name must be at least 2 characters").max(120),
+  hungerFocusAreas: z
+    .array(z.enum(HUNGER_ISSUE_IDS, { error: "Select a valid world hunger issue" }))
+    .max(HUNGER_ISSUE_IDS.length)
+    .transform((values) => [...new Set(values)]),
+  hungerMission: z
+    .string()
+    .trim()
+    .min(10, "Describe how you tackle hunger in at least 10 characters")
+    .max(2000)
+    .nullish(),
   logoUrl: urlSchema.nullish(),
   shortDescription: z
     .string()
@@ -95,6 +106,9 @@ export const ngoCreateSchema = ngoBaseSchema
   .extend({
     otherCauses: ngoBaseSchema.shape.otherCauses.default([]),
     keyAchievements: ngoBaseSchema.shape.keyAchievements.default([]),
+    // Defaults to empty so existing callers stay valid; the onboarding form
+    // asks for at least one (see `requireHungerFocusAreas` in ./onboarding.ts).
+    hungerFocusAreas: ngoBaseSchema.shape.hungerFocusAreas.default([]),
   })
   .superRefine(addCrossFieldIssues);
 

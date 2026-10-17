@@ -20,5 +20,27 @@
     "expYear": 2030,
     "label": "Backup card (demo)",
     "isDefault": false
+  },
+  {
+    "key": "nadia-visa",
+    "individualKey": "nadia-demo",
+    "brand": "VISA",
+    "last4": "1881",
+    "holderName": "NADIA DEMO",
+    "expMonth": 9,
+    "expYear": 2029,
+    "label": "Everyday card (demo)",
+    "isDefault": true
+  },
+  {
+    "key": "tomas-amex",
+    "individualKey": "tomas-demo",
+    "brand": "AMEX",
+    "last4": "0005",
+    "holderName": "TOMAS DEMO",
+    "expMonth": 2,
+    "expYear": 2030,
+    "label": "Travel card (demo)",
+    "isDefault": true
   }
 ]

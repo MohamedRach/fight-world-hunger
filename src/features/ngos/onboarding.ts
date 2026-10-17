@@ -30,6 +30,8 @@ export type OnboardingDraft = {
   registrationId: string;
   shortDescription: string;
   mission: string;
+  hungerMission: string;
+  hungerFocusAreas: string[];
   hqCountryCode: string;
   hqCity: string;
   operatingCountryCodes: string[];
@@ -54,6 +56,8 @@ export const EMPTY_DRAFT: OnboardingDraft = {
   registrationId: "",
   shortDescription: "",
   mission: "",
+  hungerMission: "",
+  hungerFocusAreas: [],
   hqCountryCode: "",
   hqCity: "",
   operatingCountryCodes: [],
@@ -99,7 +103,7 @@ export const ONBOARDING_STEPS: readonly OnboardingStep[] = [
     label: "Causes",
     title: "Areas of intervention",
     description: "The causes you address and the people you serve.",
-    fields: ["primaryCause", "otherCauses", "activitiesDescription", "targetBeneficiaries"],
+    fields: ["hungerFocusAreas", "hungerMission", "primaryCause", "otherCauses", "activitiesDescription", "targetBeneficiaries"],
   },
   {
     id: "contact",
@@ -136,6 +140,8 @@ export function draftToPayload(draft: OnboardingDraft): Record<string, unknown> 
     logoUrl: optional(draft.logoUrl),
     shortDescription: draft.shortDescription.trim(),
     mission: draft.mission.trim(),
+    hungerMission: optional(draft.hungerMission),
+    hungerFocusAreas: draft.hungerFocusAreas,
     activitiesDescription: optional(draft.activitiesDescription),
     targetBeneficiaries: optional(draft.targetBeneficiaries),
     yearFounded: year === undefined ? undefined : Number(year),
@@ -160,7 +166,17 @@ export function draftToPayload(draft: OnboardingDraft): Record<string, unknown> 
 
 export function validateDraft(draft: OnboardingDraft): FieldErrors {
   const result = ngoCreateSchema.safeParse(draftToPayload(draft));
-  return result.success ? {} : fieldErrorsFromZod(result.error);
+  const errors = result.success ? {} : fieldErrorsFromZod(result.error);
+
+  // The form asks for at least one focus area even though the stored schema
+  // tolerates an empty list: it is what donors are matched against.
+  if (draft.hungerFocusAreas.length === 0) {
+    return {
+      ...errors,
+      hungerFocusAreas: ["Select at least one world hunger issue your organization works on"],
+    };
+  }
+  return errors;
 }
 
 /** `operatingCountryCodes.0` → `operatingCountryCodes`. */
@@ -218,6 +234,8 @@ export function sanitizeDraft(value: unknown): OnboardingDraft {
     registrationId: text("registrationId"),
     shortDescription: text("shortDescription"),
     mission: text("mission"),
+    hungerMission: text("hungerMission"),
+    hungerFocusAreas: list("hungerFocusAreas"),
     hqCountryCode: text("hqCountryCode"),
     hqCity: text("hqCity"),
     operatingCountryCodes: list("operatingCountryCodes"),

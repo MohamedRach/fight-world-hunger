@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { IndividualProfileView } from "@/features/individuals/types";
 import type { IndividualCompleteness } from "@/features/individuals/service";
-import { NGO_CAUSE_LABELS } from "@/features/ngos/types";
+import { hungerIssueLabel } from "@/features/hunger-issues/catalog";
 import { countryName } from "@/features/ngos/countries";
 import { NgoSection } from "@/components/ngos/NgoSection";
 import { NgoCompletenessCard } from "@/components/ngos/NgoCompletenessCard";
@@ -57,17 +57,19 @@ export function IndividualProfileOverview({
             </NgoSection>
           )}
           <NgoSection title="My interests">
-            <h3 className="font-medium">Causes</h3>
-            {profile.preferredCauses.length > 0 ? (
-              <ul className="flex flex-wrap gap-2" aria-label="Causes I care about">
-                {profile.preferredCauses.map((cause) => (
-                  <li key={cause} className={chip}>
-                    {NGO_CAUSE_LABELS[cause]}
+            <h3 className="font-medium">World hunger issues</h3>
+            {profile.hungerInterests.length > 0 ? (
+              <ul className="flex flex-wrap gap-2" aria-label="Hunger issues I care about">
+                {profile.hungerInterests.map((issue) => (
+                  <li key={issue} className={chip}>
+                    {hungerIssueLabel(issue)}
                   </li>
                 ))}
               </ul>
             ) : (
-              <p className="text-sm opacity-60">No causes selected yet.</p>
+              <p className="text-sm opacity-60">
+                No issues selected yet — add some to get campaign recommendations.
+              </p>
             )}
             <h3 className="pt-2 font-medium">Countries</h3>
             {profile.preferredCountryCodes.length > 0 ? (

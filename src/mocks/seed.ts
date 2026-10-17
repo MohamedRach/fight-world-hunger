@@ -11,6 +11,7 @@ import type {
 import { getIndividualRepository } from "@/features/individuals/repository";
 import { getNgoRepository, slugify } from "@/features/ngos/repository";
 import type { NgoCause } from "@/features/ngos/types";
+import type { HungerIssueId } from "@/features/hunger-issues/catalog";
 import { getPaymentMethodRepository } from "@/features/payments/repository";
 import type { MockCardBrand } from "@/features/payments/types";
 import type { CurrencyCode } from "@/features/money";
@@ -67,6 +68,8 @@ async function seedNgos(): Promise<Map<string, string>> {
     const ngo = await ngoRepo.create({
       slug: slugify(profile.name),
       name: profile.name,
+      hungerFocusAreas: profile.hungerFocusAreas as HungerIssueId[],
+      hungerMission: profile.hungerMission,
       logoUrl: null,
       shortDescription: profile.shortDescription,
       mission: profile.mission,
@@ -119,7 +122,7 @@ async function seedIndividuals(): Promise<Map<string, string>> {
         countryCode: profile.countryCode,
         avatarUrl: null,
         bio: profile.bio,
-        preferredCauses: profile.preferredCauses as NgoCause[],
+        hungerInterests: profile.hungerInterests as HungerIssueId[],
         preferredCountryCodes: profile.preferredCountryCodes,
         donateAnonymously: profile.donateAnonymously,
         contactConsent: profile.contactConsent,
@@ -172,6 +175,7 @@ async function seedCampaigns(ngoIds: Map<string, string>): Promise<Map<string, s
       summary: entry.summary,
       description: entry.description,
       countryCodes: entry.countryCodes,
+      issueTags: entry.issueTags as HungerIssueId[],
       goalAmountMinor: entry.goalAmountMinor,
       currency: entry.currency as CurrencyCode,
       startDate:

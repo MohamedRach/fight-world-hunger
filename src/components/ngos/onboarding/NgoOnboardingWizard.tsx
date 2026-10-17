@@ -24,6 +24,7 @@ import { COUNTRIES, countryName } from "@/features/ngos/countries";
 import { fieldErrorsFromZod } from "@/features/ngos/validation";
 import { ngoAccountSchema } from "@/features/accounts/validation";
 import { CheckboxGroup, CountryMultiSelect, SelectInput, TextArea, TextInput } from "./fields";
+import { HungerIssuePicker } from "@/components/hunger-issues/HungerIssuePicker";
 import { OnboardingStepper } from "./OnboardingStepper";
 import { OnboardingReview } from "./OnboardingReview";
 
@@ -393,6 +394,25 @@ export function NgoOnboardingWizard({
       case "causes":
         return (
           <div className="grid gap-5">
+            <HungerIssuePicker
+              id={fieldId("hungerFocusAreas")}
+              label="World hunger issues you work on"
+              hint="Donors are matched to your campaigns through these. Each campaign also gets its own tags."
+              required
+              value={draft.hungerFocusAreas}
+              onChange={(value) => update("hungerFocusAreas", value)}
+              error={fieldError("hungerFocusAreas")}
+            />
+            <TextArea
+              id={fieldId("hungerMission")}
+              label="How you tackle hunger"
+              rows={3}
+              maxLength={2000}
+              value={draft.hungerMission}
+              onChange={(value) => update("hungerMission", value)}
+              hint="Your interventions and approach. Shown to donors and used to explain recommendations."
+              error={fieldError("hungerMission")}
+            />
             <SelectInput
               id={fieldId("primaryCause")}
               label="Primary cause"

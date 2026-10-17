@@ -70,7 +70,7 @@ export async function createMyIndividualProfile(
     countryCode: data.countryCode ?? null,
     avatarUrl: data.avatarUrl ?? null,
     bio: data.bio ?? null,
-    preferredCauses: data.preferredCauses,
+    hungerInterests: data.hungerInterests,
     preferredCountryCodes: data.preferredCountryCodes,
     donateAnonymously: data.donateAnonymously,
     contactConsent: data.contactConsent,
@@ -112,7 +112,7 @@ export function computeIndividualCompleteness(
     ["Country of residence", profile.countryCode !== null],
     ["Profile photo", profile.avatarUrl !== null],
     ["A few words about you", profile.bio !== null],
-    ["Causes you care about", profile.preferredCauses.length > 0],
+    ["World hunger issues you care about", profile.hungerInterests.length > 0],
     ["Countries you want to support", profile.preferredCountryCodes.length > 0],
   ];
   const missing = checks.filter(([, done]) => !done).map(([label]) => label);

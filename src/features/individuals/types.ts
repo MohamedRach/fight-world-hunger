@@ -1,4 +1,4 @@
-import type { NgoCause } from "@/features/ngos/types";
+import type { HungerIssueId } from "@/features/hunger-issues/catalog";
 
 /** Profile of an individual (potential donor). Private to its owner. */
 export type IndividualProfile = {
@@ -9,7 +9,11 @@ export type IndividualProfile = {
   countryCode: string | null;
   avatarUrl: string | null;
   bio: string | null;
-  preferredCauses: NgoCause[];
+  /**
+   * World hunger issues this donor cares about, from the shared taxonomy.
+   * Drives the campaign recommendations.
+   */
+  hungerInterests: HungerIssueId[];
   preferredCountryCodes: string[];
   donateAnonymously: boolean;
   contactConsent: boolean;
@@ -26,7 +30,7 @@ export type IndividualProfileView = {
   countryCode: string | null;
   avatarUrl: string | null;
   bio: string | null;
-  preferredCauses: NgoCause[];
+  hungerInterests: HungerIssueId[];
   preferredCountryCodes: string[];
   donateAnonymously: boolean;
   contactConsent: boolean;
@@ -40,7 +44,7 @@ export function toIndividualProfileView(profile: IndividualProfile): IndividualP
     countryCode: profile.countryCode,
     avatarUrl: profile.avatarUrl,
     bio: profile.bio,
-    preferredCauses: profile.preferredCauses,
+    hungerInterests: profile.hungerInterests,
     preferredCountryCodes: profile.preferredCountryCodes,
     donateAnonymously: profile.donateAnonymously,
     contactConsent: profile.contactConsent,
