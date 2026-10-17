@@ -12,7 +12,7 @@
     "test:watch": "vitest",
     "data:hunger": "node scripts/fetch-hunger-data.mjs",
     "data:geometry": "node scripts/fetch-country-geometry.mjs",
-    "demo": "node scripts/seed-demo.mjs"
+    "demo": "node scripts/seed-demo.mjs http://localhost:3100"
   },
   "dependencies": {
     "next": "16.4.2",

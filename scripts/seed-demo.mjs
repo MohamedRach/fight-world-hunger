@@ -3,13 +3,13 @@
  * Seeds demo accounts, NGOs and donations through the real API, so the app can
  * be presented without clicking through every form.
  *
- *   node scripts/seed-demo.mjs [base-url]     (default http://localhost:3000)
+ *   node scripts/seed-demo.mjs [base-url]     (default http://localhost:3100)
  *
  * Re-running is safe: existing accounts are reused and new donations are added.
  * Data lives in memory, so this must run again after a server restart.
  */
 
-const BASE_URL = (process.argv[2] ?? "http://localhost:3000").replace(/\/$/, "");
+const BASE_URL = (process.argv[2] ?? "http://localhost:3100").replace(/\/$/, "");
 
 async function call(method, path, body, session) {
   const response = await fetch(`${BASE_URL}${path}`, {
