@@ -9,6 +9,9 @@ export default defineConfig({
     environment: "jsdom",
     setupFiles: ["./tests/setup.ts"],
     include: ["tests/**/*.test.{ts,tsx}"],
+    // The onboarding wizards take several seconds to drive through their steps;
+    // the default 5s made them flaky when the suite ran in parallel.
+    testTimeout: 20000,
   },
   resolve: {
     alias: {

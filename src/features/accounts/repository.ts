@@ -2,7 +2,7 @@ import "server-only";
 import { randomBytes, randomUUID } from "node:crypto";
 import type { Account } from "./types";
 
-type Session = { accountId: string; expiresAt: number };
+type Session = { accountId: string; expiresAt: Date };
 
 export const SESSION_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 
@@ -57,14 +57,16 @@ class InMemoryAccountRepository implements AccountRepository {
 
   async createSession(accountId: string): Promise<string> {
     const token = randomBytes(32).toString("base64url");
-    this.sessions.set(token, { accountId, expiresAt: Date.now() + SESSION_TTL_MS });
+    // Date, not a number: comparisons stay consistent and the value is stable
+    // during prerender (this read used to make Next.js log an error).
+    this.sessions.set(token, { accountId, expiresAt: new Date(Date.now() + SESSION_TTL_MS) });
     return token;
   }
 
   async findSessionAccountId(token: string): Promise<string | null> {
     const session = this.sessions.get(token);
     if (!session) return null;
-    if (session.expiresAt < Date.now()) {
+    if (session.expiresAt.getTime() < Date.now()) {
       this.sessions.delete(token);
       return null;
     }
