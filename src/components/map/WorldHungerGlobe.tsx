@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useImperativeHandle, useRef, type Ref } from "react";
+import { useCallback, useEffect, useImperativeHandle, useLayoutEffect, useRef, useState, type Ref } from "react";
 import Globe, { type GlobeMethods } from "react-globe.gl";
 
 import type { ResolvedCountry } from "@/features/geography/types";
@@ -59,6 +59,13 @@ export default function WorldHungerGlobe({
   handleRef,
 }: WorldHungerGlobeProps) {
   const globeRef = useRef<GlobeMethods | undefined>(undefined);
+  const [rendererKey, setRendererKey] = useState(0);
+
+  useLayoutEffect(() => {
+    // Activity preserves this component, but react-globe.gl disposes its
+    // renderer when hidden. A new key gives it a fresh instance on return.
+    return () => setRendererKey((key) => key + 1);
+  }, []);
 
   const setAutoRotate = useCallback((enabled: boolean) => {
     const controls = globeRef.current?.controls();
@@ -70,13 +77,13 @@ export default function WorldHungerGlobe({
     if (!globe) return;
 
     const controls = globe.controls();
-    controls.autoRotate = true;
+    controls.autoRotate = !interactionActive && hoveredKey === null;
     controls.autoRotateSpeed = 0.35;
     controls.enablePan = false;
     controls.zoomSpeed = 0.8;
 
     globe.pointOfView({ lat: 15, lng: 10, altitude: DEFAULT_ALTITUDE }, 0);
-  }, []);
+  }, [hoveredKey, interactionActive]);
 
   useEffect(() => {
     setAutoRotate(!interactionActive && hoveredKey === null);
@@ -117,6 +124,7 @@ export default function WorldHungerGlobe({
 
   return (
     <Globe
+      key={rendererKey}
       ref={globeRef}
       width={width}
       height={height}

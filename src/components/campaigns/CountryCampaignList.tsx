@@ -11,6 +11,7 @@ import type {
 } from "@/features/recommendations/types";
 import { DonateDialog } from "@/components/donations/DonateDialog";
 import { CampaignCard } from "./CampaignCard";
+import { RecommendationLoading } from "./RecommendationLoading";
 
 interface CountryCampaignListProps {
   countryCode: string;
@@ -67,12 +68,7 @@ export function CountryCampaignList({ countryCode, countryName }: CountryCampaig
   let content: ReactNode;
   if (state.status === "loading") {
     content = (
-      <div role="status" aria-live="polite" className="space-y-2">
-        <p className="text-xs text-slate-400">Loading campaigns…</p>
-        {[0, 1].map((index) => (
-          <div key={index} aria-hidden="true" className="h-24 animate-pulse rounded-xl bg-white/5" />
-        ))}
-      </div>
+      <RecommendationLoading key={requestKey} countryName={countryName} />
     );
   } else if (state.status === "error") {
     content = (
@@ -125,7 +121,7 @@ function CampaignSections({
   countryName: string;
   onDonate: (campaign: CampaignSummary) => void;
 }) {
-  const { campaigns, closedCampaigns, recommendations, personalized, notice } = response;
+  const { campaigns, closedCampaigns, recommendations, personalized, notice, source } = response;
 
   if (campaigns.length === 0 && closedCampaigns.length === 0) {
     return (
@@ -162,6 +158,13 @@ function CampaignSections({
             {personalized
               ? "These campaigns best match your interests in fighting world hunger."
               : "A general starting point — not personalised to you."}
+          </p>
+          <p className="mt-2 inline-flex rounded-full border border-emerald-300/20 bg-emerald-400/10 px-2 py-1 text-[10px] font-medium text-emerald-200">
+            {source === "llm"
+              ? "AI-assisted matches"
+              : source === "fallback"
+                ? "Interest-based matches · no AI model used"
+                : "General suggestions · not personalised"}
           </p>
           <ul className="mt-2 space-y-2">
             {recommended.map((campaign) => (

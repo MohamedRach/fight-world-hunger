@@ -105,6 +105,27 @@ tags)` for 5 minutes. Changing interests, a campaign tag, or the country
 produces a different key, so recommendations refresh instead of going stale.
 Failures are not cached, and the client fetches once per country selection.
 
+### Loading experience
+
+While the request is pending, the country sidebar shows an animated
+recommendation-assistant panel: country campaigns, hunger interests, and
+relevant matches. The highlighted icon cycles every 1.6 seconds and resets
+when the country or retry attempt changes. Animation respects reduced-motion
+preferences.
+
+This is explicitly labelled an **illustrative workflow**, not live server
+progress or the model's private reasoning. The API returns a single response;
+the animation does not claim steps have completed and never delays results
+for presentation. The same loader covers cached, generic, fallback and LLM
+responses because their source is only known after the response arrives.
+Successful recommendations show their actual source: "AI-assisted matches",
+"Interest-based matches · no AI model used", or "General suggestions · not
+personalised". Errors replace the panel with the existing retry control.
+
+Regression coverage:
+`tests/components/CountryCampaignList.test.tsx` checks pending, success,
+error/retry, country changes, source labels and timer/request cleanup.
+
 ### Prompt safety
 
 Campaign titles, summaries and NGO missions are untrusted input. They are sent
