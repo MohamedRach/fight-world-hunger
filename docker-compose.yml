@@ -1,0 +1,86 @@
+# Fight World Hunger — local container setup.
+#
+#   docker compose up --build          production-style app on :3000
+#   docker compose --profile dev up    hot-reloading dev server instead
+#   docker compose --profile db up -d db   PostgreSQL only
+#
+# Secrets come from .env.local (git-ignored), never from this file or the image.
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: fight-world-hunger:latest
+    ports:
+      - "${APP_PORT:-3000}:3000"
+    environment:
+      NODE_ENV: production
+      # Unused today (the app runs on the in-memory mock store) but wired so
+      # the ORM work can switch over without touching compose.
+      DATABASE_URL: ${DATABASE_URL:-postgresql://fwh:fwh@db:5432/fight_world_hunger}
+    # LLM_API_KEY / LLM_PROVIDER / LLM_MODEL / LLM_BASE_URL / LLM_TIMEOUT_MS
+    # come from here. They are deliberately NOT repeated under `environment`:
+    # a key listed there wins over env_file, so an unset shell variable would
+    # blank out the value from the file. Missing file ⇒ fallback ranking.
+    env_file:
+      # Optional: present on developer machines, absent in CI.
+      - path: .env.local
+        required: false
+    healthcheck:
+      # Any always-dynamic route proves the server is answering.
+      test:
+        ["CMD", "node", "-e",
+         "fetch('http://127.0.0.1:3000/api/countries/KEN/campaigns').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 10s
+      start_period: 40s
+      retries: 3
+    restart: unless-stopped
+
+  # Hot-reloading development server. Source is bind-mounted; node_modules
+  # stays in a volume so the host's (possibly Windows) copy is not used.
+  dev:
+    profiles: ["dev"]
+    image: node:22-alpine
+    working_dir: /app
+    command: sh -c "npm ci && npm run dev -- --hostname 0.0.0.0 --port 3000"
+    ports:
+      - "${DEV_PORT:-3000}:3000"
+    environment:
+      NODE_ENV: development
+      # Bind mounts on Windows/macOS often miss inotify events.
+      WATCHPACK_POLLING: "true"
+    # Same reasoning as the app service: LLM_* come from the file only.
+    env_file:
+      - path: .env.local
+        required: false
+    volumes:
+      - .:/app
+      - dev_node_modules:/app/node_modules
+      - dev_next_cache:/app/.next
+
+  # Not used yet: the application still runs on the in-memory mock store
+  # (see src/mocks/README.md). Started only with `--profile db`.
+  db:
+    profiles: ["db", "dev"]
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-fwh}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-fwh}
+      POSTGRES_DB: ${POSTGRES_DB:-fight_world_hunger}
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-fwh} -d ${POSTGRES_DB:-fight_world_hunger}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+volumes:
+  db_data:
+  dev_node_modules:
+  dev_next_cache:

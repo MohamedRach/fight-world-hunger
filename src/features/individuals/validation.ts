@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { NGO_CAUSES } from "@/features/ngos/types";
+import { HUNGER_ISSUE_IDS } from "@/features/hunger-issues/catalog";
 import { isCountryCode } from "@/features/ngos/countries";
 
 const countryCodeSchema = z
@@ -16,9 +16,9 @@ const individualBaseSchema = z.strictObject({
   countryCode: countryCodeSchema.nullish(),
   avatarUrl: z.url("Must be a valid URL (including https://)").max(2048).nullish(),
   bio: z.string().trim().max(500, "Keep it under 500 characters").nullish(),
-  preferredCauses: z
-    .array(z.enum(NGO_CAUSES, { error: "Select a valid cause" }))
-    .max(NGO_CAUSES.length)
+  hungerInterests: z
+    .array(z.enum(HUNGER_ISSUE_IDS, { error: "Select a valid world hunger issue" }))
+    .max(HUNGER_ISSUE_IDS.length)
     .transform(unique),
   preferredCountryCodes: z
     .array(countryCodeSchema)
@@ -31,7 +31,10 @@ const individualBaseSchema = z.strictObject({
 // Defaults only on create: zod applies defaults even inside `.partial()`,
 // which would make a PATCH that omits these fields reset them.
 export const individualCreateSchema = individualBaseSchema.extend({
-  preferredCauses: individualBaseSchema.shape.preferredCauses.default([]),
+  // Defaults to empty so profiles created before the hunger taxonomy (and
+  // programmatic callers) stay valid. The onboarding form asks for at least
+  // one — see `requireHungerInterests` in ./onboarding.ts.
+  hungerInterests: individualBaseSchema.shape.hungerInterests.default([]),
   preferredCountryCodes: individualBaseSchema.shape.preferredCountryCodes.default([]),
   donateAnonymously: individualBaseSchema.shape.donateAnonymously.default(false),
   contactConsent: individualBaseSchema.shape.contactConsent.default(false),

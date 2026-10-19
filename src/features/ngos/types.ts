@@ -1,3 +1,5 @@
+import type { HungerIssueId } from "@/features/hunger-issues/catalog";
+
 export const NGO_CAUSES = [
   "HUNGER_RELIEF",
   "EDUCATION",
@@ -39,6 +41,14 @@ export type Ngo = {
   id: string;
   slug: string;
   name: string;
+  /**
+   * World hunger issues this organization works on, from the shared taxonomy
+   * (src/features/hunger-issues/catalog.ts). Describes the organization as a
+   * whole — each campaign still carries its own `issueTags`.
+   */
+  hungerFocusAreas: HungerIssueId[];
+  /** How the organization tackles hunger: its interventions and approach. */
+  hungerMission: string | null;
   logoUrl: string | null;
   shortDescription: string;
   mission: string;
@@ -84,6 +94,8 @@ export function toPublicProfile(ngo: Ngo): NgoPublicProfile {
     id: ngo.id,
     slug: ngo.slug,
     name: ngo.name,
+    hungerFocusAreas: ngo.hungerFocusAreas,
+    hungerMission: ngo.hungerMission,
     logoUrl: ngo.logoUrl,
     shortDescription: ngo.shortDescription,
     mission: ngo.mission,

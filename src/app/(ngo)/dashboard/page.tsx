@@ -1,8 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { connection } from "next/server";
 import { getSessionUser } from "@/features/ngos/session";
 import { computeProfileCompleteness, getManagedNgos } from "@/features/ngos/service";
+import { getCampaignsForNgo } from "@/features/campaigns/service";
 import { NgoCompletenessCard } from "@/components/ngos/NgoCompletenessCard";
+import { NgoCampaignsPanel } from "@/components/campaigns/NgoCampaignsPanel";
 import { SignOutButton } from "@/components/sign-in/SignOutButton";
 import { countryName } from "@/features/ngos/countries";
 
@@ -12,6 +15,8 @@ export const metadata: Metadata = {
 };
 
 export default async function NgoDashboardPage() {
+  // Campaign figures come from mutable mock data: render at request time.
+  await connection();
   const user = await getSessionUser();
   const ngos = await getManagedNgos(user?.id ?? null);
 
@@ -84,7 +89,10 @@ export default async function NgoDashboardPage() {
         </div>
       ) : (
         <div className="mt-8 grid gap-6">
-          {ngos.map((ngo) => (
+          {await Promise.all(
+            ngos.map(async (ngo) => {
+              const campaigns = await getCampaignsForNgo(user.id, ngo.id);
+              return (
             <section
               key={ngo.id}
               aria-label={ngo.name}
@@ -111,11 +119,28 @@ export default async function NgoDashboardPage() {
                   >
                     Preview public profile
                   </Link>
+                  <Link
+                    href="/dashboard/campaigns/new"
+                    className="rounded-full border border-black/15 px-4 py-1.5 text-sm font-medium hover:bg-black/5 dark:border-white/20 dark:hover:bg-white/10"
+                  >
+                    New campaign
+                  </Link>
+                </div>
+
+                <div className="mt-6">
+                  <h3 className="text-sm font-semibold">
+                    Campaigns ({campaigns.length})
+                  </h3>
+                  <div className="mt-2">
+                    <NgoCampaignsPanel campaigns={campaigns} />
+                  </div>
                 </div>
               </div>
               <NgoCompletenessCard completeness={computeProfileCompleteness(ngo)} />
             </section>
-          ))}
+              );
+            }),
+          )}
         </div>
       )}
     </main>

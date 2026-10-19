@@ -19,6 +19,7 @@ import type { ResolvedCountry } from "@/features/geography/types";
 import { hungerColor } from "@/features/hunger/color-scale";
 import type { HungerDataset } from "@/features/hunger/types";
 import { NgoList } from "@/components/ngos/NgoList";
+import { CountryCampaignList } from "@/components/campaigns/CountryCampaignList";
 import { CountryDetailsSidebar } from "./CountryDetailsSidebar";
 import { CountryTooltip } from "./CountryTooltip";
 import { GlobeControls } from "./GlobeControls";
@@ -365,6 +366,11 @@ export function HungerGlobeExplorer({ dataset }: HungerGlobeExplorerProps) {
               ) : undefined
             }
             ngoNote={ngoNote}
+            campaignsSection={
+              selected.code ? (
+                <CountryCampaignList countryCode={selected.code} countryName={selected.name} />
+              ) : undefined
+            }
           >
             {selected.code ? (
               <NgoList countryCode={selected.code} countryName={selected.name} />

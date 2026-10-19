@@ -10,7 +10,7 @@ export type IndividualDraft = {
   countryCode: string;
   avatarUrl: string;
   bio: string;
-  preferredCauses: string[];
+  hungerInterests: string[];
   preferredCountryCodes: string[];
   donateAnonymously: boolean;
   contactConsent: boolean;
@@ -23,7 +23,7 @@ export const EMPTY_INDIVIDUAL_DRAFT: IndividualDraft = {
   countryCode: "",
   avatarUrl: "",
   bio: "",
-  preferredCauses: [],
+  hungerInterests: [],
   preferredCountryCodes: [],
   donateAnonymously: false,
   contactConsent: false,
@@ -45,7 +45,7 @@ const INTERESTS: IndividualSection = {
   label: "Interests",
   title: "What you care about",
   description: "We'll use this to suggest organizations that match your interests.",
-  fields: ["preferredCauses", "preferredCountryCodes"],
+  fields: ["hungerInterests", "preferredCountryCodes"],
 };
 
 const PRIVACY: IndividualSection = {
@@ -93,7 +93,7 @@ function profilePayload(draft: IndividualDraft) {
     countryCode: optional(draft.countryCode),
     avatarUrl: optional(draft.avatarUrl),
     bio: optional(draft.bio),
-    preferredCauses: draft.preferredCauses,
+    hungerInterests: draft.hungerInterests,
     preferredCountryCodes: draft.preferredCountryCodes,
     donateAnonymously: draft.donateAnonymously,
     contactConsent: draft.contactConsent,
@@ -120,14 +120,28 @@ export function draftToUpdatePayload(draft: IndividualDraft): Record<string, unk
   };
 }
 
+/**
+ * The onboarding form asks for at least one world hunger interest, even
+ * though the stored schema tolerates an empty list: without interests the
+ * donor gets no personalised recommendations, which is the point of the
+ * product.
+ */
+function requireHungerInterests(draft: IndividualDraft, errors: FieldErrors): FieldErrors {
+  if (draft.hungerInterests.length > 0) return errors;
+  return {
+    ...errors,
+    hungerInterests: ["Select at least one world hunger issue you care about"],
+  };
+}
+
 export function validateSignupDraft(draft: IndividualDraft): FieldErrors {
   const result = individualCreateSchema.safeParse(draftToSignupPayload(draft));
-  return result.success ? {} : fieldErrorsFromZod(result.error);
+  return requireHungerInterests(draft, result.success ? {} : fieldErrorsFromZod(result.error));
 }
 
 export function validateUpdateDraft(draft: IndividualDraft): FieldErrors {
   const result = individualUpdateSchema.safeParse(draftToUpdatePayload(draft));
-  return result.success ? {} : fieldErrorsFromZod(result.error);
+  return requireHungerInterests(draft, result.success ? {} : fieldErrorsFromZod(result.error));
 }
 
 export function errorsForSection(
@@ -157,7 +171,7 @@ export function profileToDraft(profile: IndividualProfileView): IndividualDraft 
     countryCode: profile.countryCode ?? "",
     avatarUrl: profile.avatarUrl ?? "",
     bio: profile.bio ?? "",
-    preferredCauses: profile.preferredCauses,
+    hungerInterests: profile.hungerInterests,
     preferredCountryCodes: profile.preferredCountryCodes,
     donateAnonymously: profile.donateAnonymously,
     contactConsent: profile.contactConsent,

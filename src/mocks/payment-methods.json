@@ -1,0 +1,46 @@
+[
+  {
+    "key": "alex-visa",
+    "individualKey": "alex-demo",
+    "brand": "VISA",
+    "last4": "4242",
+    "holderName": "ALEX DEMO",
+    "expMonth": 11,
+    "expYear": 2031,
+    "label": "Personal card (demo)",
+    "isDefault": true
+  },
+  {
+    "key": "alex-mastercard",
+    "individualKey": "alex-demo",
+    "brand": "MASTERCARD",
+    "last4": "4444",
+    "holderName": "ALEX DEMO",
+    "expMonth": 4,
+    "expYear": 2030,
+    "label": "Backup card (demo)",
+    "isDefault": false
+  },
+  {
+    "key": "nadia-visa",
+    "individualKey": "nadia-demo",
+    "brand": "VISA",
+    "last4": "1881",
+    "holderName": "NADIA DEMO",
+    "expMonth": 9,
+    "expYear": 2029,
+    "label": "Everyday card (demo)",
+    "isDefault": true
+  },
+  {
+    "key": "tomas-amex",
+    "individualKey": "tomas-demo",
+    "brand": "AMEX",
+    "last4": "0005",
+    "holderName": "TOMAS DEMO",
+    "expMonth": 2,
+    "expYear": 2030,
+    "label": "Travel card (demo)",
+    "isDefault": true
+  }
+]

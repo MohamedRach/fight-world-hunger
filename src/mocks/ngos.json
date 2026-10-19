@@ -1,0 +1,131 @@
+[
+  {
+    "key": "sahel-food-collective",
+    "account": {
+      "email": "demo.ngo@example.org",
+      "representativeName": "Amina Diallo (demo)"
+    },
+    "profile": {
+      "name": "Sahel Food Collective (demo)",
+      "shortDescription": "Fictional demo organization running school meal and drought response programmes across the Horn of Africa.",
+      "mission": "A demonstration NGO used to showcase the donation workflows of this development build. It is not a real organization and accepts no real money.",
+      "hungerMission": "We run school kitchens, distribute drought-tolerant seed to smallholder households, and pre-position emergency food stocks before the dry season so families do not have to sell their livestock to eat.",
+      "hungerFocusAreas": [
+        "school_meals",
+        "child_malnutrition",
+        "agricultural_development",
+        "climate_resilience",
+        "food_insecurity"
+      ],
+      "activitiesDescription": "Demo record: school feeding, seed distribution and emergency food parcels.",
+      "targetBeneficiaries": "Demo record: smallholder farming households and school-age children.",
+      "yearFounded": 2011,
+      "website": "https://example.org/sahel-food-collective",
+      "contactEmail": "demo.ngo@example.org",
+      "primaryCause": "HUNGER_RELIEF",
+      "otherCauses": ["CLEAN_WATER", "DISASTER_RELIEF"],
+      "hqCountryCode": "KEN",
+      "hqCity": "Nairobi",
+      "operatingCountryCodes": ["KEN", "SOM", "ETH"],
+      "projectsSummary": "Demo record: three active programmes used to populate this development environment.",
+      "impactSummary": "Demo record: figures shown here are illustrative only.",
+      "keyAchievements": ["Demo achievement: illustrative record only"]
+    }
+  },
+  {
+    "key": "caribbean-nutrition-alliance",
+    "account": {
+      "email": "demo.ngo2@example.org",
+      "representativeName": "Marc Etienne (demo)"
+    },
+    "profile": {
+      "name": "Caribbean Nutrition Alliance (demo)",
+      "shortDescription": "Fictional demo organization supporting maternal and child nutrition in the Caribbean.",
+      "mission": "A demonstration NGO used to showcase the donation workflows of this development build. It is not a real organization and accepts no real money.",
+      "hungerMission": "We run nutrition clinics for mothers and infants, screen children for acute malnutrition, and provide food vouchers that families can spend at local markets.",
+      "hungerFocusAreas": [
+        "maternal_nutrition",
+        "child_malnutrition",
+        "food_access",
+        "food_distribution"
+      ],
+      "activitiesDescription": "Demo record: nutrition clinics and food vouchers.",
+      "targetBeneficiaries": "Demo record: mothers and children under five.",
+      "yearFounded": 2016,
+      "website": "https://example.org/caribbean-nutrition-alliance",
+      "contactEmail": "demo.ngo2@example.org",
+      "primaryCause": "HUNGER_RELIEF",
+      "otherCauses": ["HEALTHCARE"],
+      "hqCountryCode": "HTI",
+      "hqCity": "Port-au-Prince",
+      "operatingCountryCodes": ["HTI", "DOM"],
+      "projectsSummary": "Demo record: illustrative programme list.",
+      "impactSummary": "Demo record: figures shown here are illustrative only.",
+      "keyAchievements": ["Demo achievement: illustrative record only"]
+    }
+  },
+  {
+    "key": "open-harvest-network",
+    "account": {
+      "email": "demo.ngo3@example.org",
+      "representativeName": "Priya Raman (demo)"
+    },
+    "profile": {
+      "name": "Open Harvest Network (demo)",
+      "shortDescription": "Fictional demo organization cutting post-harvest losses and redistributing surplus food in South Asia.",
+      "mission": "A demonstration NGO used to showcase the donation workflows of this development build. It is not a real organization and accepts no real money.",
+      "hungerMission": "We install low-cost cold storage near farming cooperatives, train traders in handling and packing, and redirect surplus produce to community kitchens instead of letting it rot.",
+      "hungerFocusAreas": [
+        "food_waste_reduction",
+        "sustainable_food_systems",
+        "food_distribution",
+        "long_term_food_security"
+      ],
+      "activitiesDescription": "Demo record: cold storage, handling training and surplus redistribution.",
+      "targetBeneficiaries": "Demo record: farming cooperatives and urban community kitchens.",
+      "yearFounded": 2019,
+      "website": "https://example.org/open-harvest-network",
+      "contactEmail": "demo.ngo3@example.org",
+      "primaryCause": "HUNGER_RELIEF",
+      "otherCauses": ["ENVIRONMENT"],
+      "hqCountryCode": "IND",
+      "hqCity": "Pune",
+      "operatingCountryCodes": ["IND", "BGD", "KEN"],
+      "projectsSummary": "Demo record: illustrative programme list.",
+      "impactSummary": "Demo record: figures shown here are illustrative only.",
+      "keyAchievements": ["Demo achievement: illustrative record only"]
+    }
+  },
+  {
+    "key": "frontier-relief-kitchen",
+    "account": {
+      "email": "demo.ngo4@example.org",
+      "representativeName": "Yusuf Karim (demo)"
+    },
+    "profile": {
+      "name": "Frontier Relief Kitchen (demo)",
+      "shortDescription": "Fictional demo organization feeding displaced families in conflict-affected regions.",
+      "mission": "A demonstration NGO used to showcase the donation workflows of this development build. It is not a real organization and accepts no real money.",
+      "hungerMission": "We operate mobile kitchens and distribute ready-to-eat rations in displacement sites, then transition families onto monthly food parcels once a camp stabilises.",
+      "hungerFocusAreas": [
+        "refugee_food_assistance",
+        "food_insecurity",
+        "food_distribution",
+        "maternal_nutrition"
+      ],
+      "activitiesDescription": "Demo record: mobile kitchens and ration distribution.",
+      "targetBeneficiaries": "Demo record: displaced families and host communities.",
+      "yearFounded": 2014,
+      "website": "https://example.org/frontier-relief-kitchen",
+      "contactEmail": "demo.ngo4@example.org",
+      "primaryCause": "HUNGER_RELIEF",
+      "otherCauses": ["DISASTER_RELIEF"],
+      "hqCountryCode": "JOR",
+      "hqCity": "Amman",
+      "operatingCountryCodes": ["SOM", "SSD", "YEM"],
+      "projectsSummary": "Demo record: illustrative programme list.",
+      "impactSummary": "Demo record: figures shown here are illustrative only.",
+      "keyAchievements": ["Demo achievement: illustrative record only"]
+    }
+  }
+]

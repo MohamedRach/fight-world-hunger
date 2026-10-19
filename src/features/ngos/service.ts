@@ -87,6 +87,8 @@ export async function createNgo(
   const ngo = await repo.create({
     slug: await uniqueSlug(data.name),
     name: data.name,
+    hungerFocusAreas: data.hungerFocusAreas,
+    hungerMission: data.hungerMission ?? null,
     logoUrl: data.logoUrl ?? null,
     shortDescription: data.shortDescription,
     mission: data.mission,

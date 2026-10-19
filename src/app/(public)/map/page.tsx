@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 
 import { HungerGlobeExplorer } from "@/components/map/HungerGlobeExplorer";
-import { MapSignInButtons } from "@/components/sign-in/MapSignInButtons";
 import { COUNTRY_GEOMETRY_ATTRIBUTION } from "@/features/geography/geometry";
 import { formatRetrievalDate } from "@/features/hunger/format";
 import { loadHungerDataset } from "@/features/hunger/server/load-hunger-data";
@@ -16,7 +15,8 @@ export default async function MapPage() {
   const dataset = await loadHungerDataset();
 
   return (
-    <main className="flex min-h-screen flex-1 flex-col bg-[#070d1a] text-slate-100">
+    // Uses the shared app background; sign-in now lives in the header menu.
+    <main className="flex flex-1 flex-col text-slate-100">
       <header className="border-b border-white/10 px-4 py-4 sm:px-6">
         <div className="mx-auto flex max-w-7xl flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
           <div>
@@ -28,7 +28,6 @@ export default async function MapPage() {
               undernourishment. Hover over a country for its figure, or click it to see the
               organisations working there.
             </p>
-            <MapSignInButtons />
           </div>
           <p className="text-[11px] leading-snug text-slate-400 sm:max-w-xs sm:text-right">
             {dataset.indicator.name} ({dataset.indicator.unit}) — {dataset.indicator.producer},
